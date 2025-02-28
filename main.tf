@@ -194,6 +194,7 @@ resource "aws_cloudwatch_metric_alarm" "apigateway_alarm" {
   }
 }
 
+#Dynamo
 resource "aws_cloudwatch_dashboard" "dynamodb_dashboard" {
   count = try(var.dynamodb.create_dashboard, false) && length(local.dynamodb_widgets) > 0 ? 1 : 0
   dashboard_name = "${var.client}-${var.project}-${var.environment}-${var.application}-${var.dynamodb.functionality}"
