@@ -1,9 +1,10 @@
 # Obtener instancias EC2 basadas en el tag proporcionado
 data "aws_instances" "ec2_tagged" {
+  count = var.ec2 != null ? 1 : 0
 
   filter {
-    name   = "tag:${try(var.ec2.tag_key, "dummy")}"
-    values = [try(var.ec2.tag_value, "dummy")]
+    name   = "tag:${try(var.ec2.tag_key, "EnableObservability")}"
+    values = [try(var.ec2.tag_value, "true")]
   }
 
   filter {
@@ -13,89 +14,99 @@ data "aws_instances" "ec2_tagged" {
 }
 
 #Para RDS
-data "aws_db_instances" "all_rds" {}
+data "aws_db_instances" "all_rds" {
+  count = var.rds != null ? 1 : 0
+}
 
 data "aws_db_instance" "rds_filtered" {
-  for_each = toset(data.aws_db_instances.all_rds.instance_identifiers)
+  for_each = var.rds != null ? toset(try(data.aws_db_instances.all_rds[0].instance_identifiers, [])) : []
   db_instance_identifier = each.value
 }
 
-#Para Lambda
-data "aws_lambda_functions" "all_lambdas" {}
-
-
-data "aws_lambda_function" "tagged" {
-  for_each       = toset(data.aws_lambda_functions.all_lambdas.function_names)
-  function_name  = each.value
+#Para Lambda (usando resourcegroupstaggingapi)
+data "aws_resourcegroupstaggingapi_resources" "lambda_filtered" {
+  count = var.lambda != null ? 1 : 0
+  
+  tag_filter {
+    key    = try(var.lambda.tag_key, "EnableObservability")
+    values = [try(var.lambda.tag_value, "true")]
+  }
+  resource_type_filters = ["lambda:function"]
 }
 
 #Para ALB
 data "aws_resourcegroupstaggingapi_resources" "alb_filtered" {
+  count = var.alb != null ? 1 : 0
+  
   tag_filter {
-    key    = "EnableObservability"
-    values = ["true"]
+    key    = try(var.alb.tag_key, "EnableObservability")
+    values = [try(var.alb.tag_value, "true")]
   }
   resource_type_filters = ["elasticloadbalancing:loadbalancer"]
 }
 
 data "aws_lb" "tagged" {
-  for_each = {
-    for alb in data.aws_resourcegroupstaggingapi_resources.alb_filtered.resource_tag_mapping_list :
+  for_each = var.alb != null ? {
+    for alb in try(data.aws_resourcegroupstaggingapi_resources.alb_filtered[0].resource_tag_mapping_list, []) :
     alb.resource_arn => alb
     if can(regex("/app/", alb.resource_arn))  # Filtrar solo ALBs
-  }
+  } : {}
 
   arn = each.key
 }
 
 #NLB
 data "aws_resourcegroupstaggingapi_resources" "nlb_filtered" {
+  count = var.nlb != null ? 1 : 0
+  
   resource_type_filters = ["elasticloadbalancing:loadbalancer"]
 
   tag_filter {
-    key    = var.nlb.tag_key
-    values = [var.nlb.tag_value]
+    key    = try(var.nlb.tag_key, "EnableObservability")
+    values = [try(var.nlb.tag_value, "true")]
   }
 }
 
 data "aws_lb" "tagged_nlb" {
-  for_each = {
-    for lb in data.aws_resourcegroupstaggingapi_resources.nlb_filtered.resource_tag_mapping_list :
+  for_each = var.nlb != null ? {
+    for lb in try(data.aws_resourcegroupstaggingapi_resources.nlb_filtered[0].resource_tag_mapping_list, []) :
     lb.resource_arn => lb
     if startswith(lb.resource_arn, "arn:aws:elasticloadbalancing") &&
        can(regex("/net/", lb.resource_arn))  # Filtrar solo NLBs
-  }
+  } : {}
+  
   arn = each.key
 }
 
 #Para S3
-
 data "aws_resourcegroupstaggingapi_resources" "s3_filtered" {
+  count = var.s3 != null ? 1 : 0
+  
   tag_filter {
-    key    = var.s3.tag_key  
-    values = [var.s3.tag_value]
+    key    = try(var.s3.tag_key, "EnableObservability")  
+    values = [try(var.s3.tag_value, "true")]
   }
   resource_type_filters = ["s3"]
 }
 
-#Para API
-
+#Para API Gateway
 data "aws_resourcegroupstaggingapi_resources" "api_filtered" {
+  count = var.apigateway != null ? 1 : 0
+  
   tag_filter {
-    key    = var.apigateway.tag_key    
-    values = [var.apigateway.tag_value]
+    key    = try(var.apigateway.tag_key, "EnableObservability")    
+    values = [try(var.apigateway.tag_value, "true")]
   }
   resource_type_filters = ["apigateway"] 
 }
 
-#Para Dynamo
+#Para DynamoDB
 data "aws_resourcegroupstaggingapi_resources" "dynamodb_filtered" {
+  count = var.dynamodb != null ? 1 : 0
+  
   tag_filter {
-    key    = var.dynamodb.tag_key    
-    values = [var.dynamodb.tag_value] 
+    key    = try(var.dynamodb.tag_key, "EnableObservability")    
+    values = [try(var.dynamodb.tag_value, "true")] 
   }
   resource_type_filters = ["dynamodb"]
 }
-
-
-

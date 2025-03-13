@@ -15,6 +15,24 @@ variable "application" {
   type = string  
 }
 
+# Categorías de Dashboard (opcional)
+variable "categories" {
+  description = "Habilitar o deshabilitar categorías de dashboard"
+  type = object({
+    compute = optional(bool, true)
+    serverless = optional(bool, true)
+    database = optional(bool, true)
+    storage = optional(bool, true)
+    networking = optional(bool, true)
+  })
+  default = {
+    compute = true
+    serverless = true
+    database = true
+    storage = true
+    networking = true
+  }
+}
 
 # EC2
 variable "ec2" {
@@ -142,6 +160,7 @@ variable "apigateway" {
     metrics          = optional(list(string), ["Latency", "5XXError", "4XXError", "IntegrationLatency"])
     alarm_thresholds = optional(map(number), {})
   })
+  default = null
 }
 
 #Dynamo
@@ -156,4 +175,5 @@ variable "dynamodb" {
     metrics          = optional(list(string), ["ConsumedReadCapacityUnits", "ConsumedWriteCapacityUnits", "ThrottledRequests", "ReadThrottleEvents", "WriteThrottleEvents"])
     alarm_thresholds = optional(map(number), {})
   })
+  default = null
 }
