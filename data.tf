@@ -1,4 +1,6 @@
-# Obtener instancias EC2 basadas en el tag proporcionado
+###########################################################
+# Data Obtiene Instancias EC2 segun el Tag
+###########################################################
 data "aws_instances" "ec2_tagged" {
   count = var.ec2 != null ? 1 : 0
 
@@ -13,7 +15,9 @@ data "aws_instances" "ec2_tagged" {
   }
 }
 
-#Para RDS
+###########################################################
+# Data Obtiene Instancias RDS/Aurora segun el Tag
+###########################################################
 data "aws_db_instances" "all_rds" {
   count = var.rds != null ? 1 : 0
 }
@@ -23,7 +27,9 @@ data "aws_db_instance" "rds_filtered" {
   db_instance_identifier = each.value
 }
 
-#Para Lambda (usando resourcegroupstaggingapi)
+##########################################################
+# Data Obtiene Instancias Lambda segun el Tag
+##########################################################
 data "aws_resourcegroupstaggingapi_resources" "lambda_filtered" {
   count = var.lambda != null ? 1 : 0
   
@@ -34,7 +40,9 @@ data "aws_resourcegroupstaggingapi_resources" "lambda_filtered" {
   resource_type_filters = ["lambda:function"]
 }
 
-#Para ALB
+##########################################################
+# Data Obtiene Instancias ALB segun el Tag
+##########################################################
 data "aws_resourcegroupstaggingapi_resources" "alb_filtered" {
   count = var.alb != null ? 1 : 0
   
@@ -55,7 +63,9 @@ data "aws_lb" "tagged" {
   arn = each.key
 }
 
-#NLB
+##########################################################
+# Data Obtiene Instancias NLB segun el Tag
+##########################################################
 data "aws_resourcegroupstaggingapi_resources" "nlb_filtered" {
   count = var.nlb != null ? 1 : 0
   
@@ -78,7 +88,9 @@ data "aws_lb" "tagged_nlb" {
   arn = each.key
 }
 
-#Para S3
+##########################################################
+# Data Obtiene Instancias S3 segun el Tag
+##########################################################
 data "aws_resourcegroupstaggingapi_resources" "s3_filtered" {
   count = var.s3 != null ? 1 : 0
   
@@ -89,7 +101,9 @@ data "aws_resourcegroupstaggingapi_resources" "s3_filtered" {
   resource_type_filters = ["s3"]
 }
 
-#Para API Gateway
+##########################################################
+# Data Obtiene Instancias Api Gateway segun el Tag
+##########################################################
 data "aws_resourcegroupstaggingapi_resources" "api_filtered" {
   count = var.apigateway != null ? 1 : 0
   
@@ -100,7 +114,9 @@ data "aws_resourcegroupstaggingapi_resources" "api_filtered" {
   resource_type_filters = ["apigateway"] 
 }
 
-#Para DynamoDB
+##########################################################
+# Data Obtiene Instancias Dynamodb segun el Tag
+##########################################################
 data "aws_resourcegroupstaggingapi_resources" "dynamodb_filtered" {
   count = var.dynamodb != null ? 1 : 0
   
