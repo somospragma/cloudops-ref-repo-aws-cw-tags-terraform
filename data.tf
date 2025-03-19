@@ -126,3 +126,26 @@ data "aws_resourcegroupstaggingapi_resources" "dynamodb_filtered" {
   }
   resource_type_filters = ["dynamodb"]
 }
+
+##########################################################
+# Data Obtiene Recursos ECS segun el Tag
+##########################################################
+data "aws_resourcegroupstaggingapi_resources" "ecs_clusters_filtered" {
+  count = var.ecs != null || var.ecs_insights != null ? 1 : 0
+  
+  tag_filter {
+    key    = try(var.ecs != null ? var.ecs.tag_key : var.ecs_insights.tag_key, "EnableObservability")
+    values = [try(var.ecs != null ? var.ecs.tag_value : var.ecs_insights.tag_value, "true")]
+  }
+  resource_type_filters = ["ecs:cluster"]
+}
+
+data "aws_resourcegroupstaggingapi_resources" "ecs_services_filtered" {
+  count = var.ecs != null || var.ecs_insights != null ? 1 : 0
+  
+  tag_filter {
+    key    = try(var.ecs != null ? var.ecs.tag_key : var.ecs_insights.tag_key, "EnableObservability")
+    values = [try(var.ecs != null ? var.ecs.tag_value : var.ecs_insights.tag_value, "true")]
+  }
+  resource_type_filters = ["ecs:service"]
+}

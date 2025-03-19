@@ -6,15 +6,6 @@ locals {
     "period"  = 300
   }
 
-  ec2_metrics = try(var.ec2 != null ? var.ec2.metrics : [], [])
-  rds_metrics = try(var.rds != null ? var.rds.metrics : [], [])
-  lambda_metrics = try(var.lambda != null ? var.lambda.metrics : [], [])
-  alb_metrics = try(var.alb != null ? var.alb.metrics : [], [])
-  nlb_metrics = try(var.nlb != null ? var.nlb.metrics : [], [])
-  s3_metrics = try(var.s3 != null ? var.s3.metrics : [], [])
-  apigateway_metrics = try(var.apigateway != null ? var.apigateway.metrics : [], [])
-  dynamodb_metrics = try(var.dynamodb != null ? var.dynamodb.metrics : [], [])
-
 ###########################################################
 # Dasboard Header - General CloudWatch
 ###########################################################
@@ -80,4 +71,21 @@ locals {
     for table in try(data.aws_resourcegroupstaggingapi_resources.dynamodb_filtered[0].resource_tag_mapping_list, []) :
     element(split("/", table.resource_arn), length(split("/", table.resource_arn)) - 1)
   ] : []
+
+###########################################################
+# Filtros ECS
+###########################################################
+  ecs_clusters_filtered = var.ecs != null || var.ecs_insights != null ? [
+    for cluster in try(data.aws_resourcegroupstaggingapi_resources.ecs_clusters_filtered[0].resource_tag_mapping_list, []) :
+    element(split("/", cluster.resource_arn), length(split("/", cluster.resource_arn)) - 1)
+  ] : []
+
+  ecs_services_filtered = var.ecs != null || var.ecs_insights != null ? [
+    for service in try(data.aws_resourcegroupstaggingapi_resources.ecs_services_filtered[0].resource_tag_mapping_list, []) : {
+      service_name = element(split("/", service.resource_arn), length(split("/", service.resource_arn)) - 1)
+      cluster_name = element(split("/", service.resource_arn), length(split("/", service.resource_arn)) - 3)
+    }
+  ] : []
 }
+
+

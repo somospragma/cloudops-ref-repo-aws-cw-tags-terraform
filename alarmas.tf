@@ -145,7 +145,11 @@ locals {
     flatten([
       for bucket in local.s3_buckets_filtered : [
         for alarm in try(var.s3.alarm_config, []) : {
-          alarm_name  = "s3-${alarm.metric_name}-${try(alarm.severity, "warning")}-${bucket}"
+          alarm_name = (
+            alarm.metric_name == "NumberOfObjects" 
+            ? "s3-${alarm.metric_name}-${try(alarm.severity, "warning")}-${bucket}" 
+            : "s3-${alarm.metric_name}-${try(alarm.severity, "warning")}-${try(alarm.storage_type, "Standard")}-${bucket}"
+          )
           metric_name = alarm.metric_name
           threshold   = alarm.threshold
           bucket_name = bucket
@@ -154,10 +158,17 @@ locals {
           period              = try(alarm.period, 300)
           statistic           = try(alarm.statistic, "Average")
           alarm_description   = try(alarm.description, "Alarma ${try(alarm.severity, "warning")} para ${alarm.metric_name} en S3 ${bucket}")
-          dimensions = {
-            BucketName  = bucket
-            StorageType = "Standard"
-          }
+          dimensions = (
+            alarm.metric_name == "NumberOfObjects" 
+            ? {
+                BucketName  = bucket
+                StorageType = "AllStorageTypes"
+              } 
+            : {
+                BucketName  = bucket
+                StorageType = try(alarm.storage_type, "Standard")
+              }
+          )
           actions = try(alarm.actions, [])
           datapoints_to_alarm = try(alarm.datapoints_to_alarm, 2)
           treat_missing_data = try(alarm.treat_missing_data, "missing")
@@ -219,4 +230,55 @@ locals {
       ]
     ])
   ) : []
+###########################################################
+# Alarmas - CloudWatch ECS Estándar
+###########################################################
+  ecs_alarms = var.ecs != null && try(var.ecs.create_alarms, false) && (length(local.ecs_clusters_filtered) > 0 || length(local.ecs_services_filtered) > 0) ? concat(
+    flatten([
+      for alarm in try(var.ecs.alarm_config, []) : {
+        alarm_name  = "ecs-${alarm.metric_name}-${try(alarm.severity, "warning")}-${alarm.dimension_value}"
+        metric_name = alarm.metric_name
+        namespace   = "AWS/ECS"
+        threshold   = alarm.threshold
+        comparison_operator = try(alarm.comparison, "GreaterThanOrEqualToThreshold")
+        evaluation_periods  = try(alarm.evaluation_periods, 2)
+        period              = try(alarm.period, 300)
+        statistic           = try(alarm.statistic, "Average")
+        alarm_description   = try(alarm.description, "Alarma ${try(alarm.severity, "warning")} para ${alarm.metric_name} en ECS ${alarm.dimension_value}")
+        dimensions = {
+          "${try(alarm.dimension_name, "ClusterName")}" = alarm.dimension_value
+        }
+        actions = try(alarm.actions, [])
+        datapoints_to_alarm = try(alarm.datapoints_to_alarm, 2)
+        treat_missing_data = try(alarm.treat_missing_data, "missing")
+      }
+    ])
+  ) : []
+
+###########################################################
+# Alarmas - CloudWatch ECS Container Insights
+###########################################################
+  ecs_insights_alarms = var.ecs_insights != null && try(var.ecs_insights.create_alarms, false) && (length(local.ecs_clusters_filtered) > 0 || length(local.ecs_services_filtered) > 0) ? concat(
+    flatten([
+      for alarm in try(var.ecs_insights.alarm_config, []) : {
+        alarm_name  = "ecs-insights-${alarm.metric_name}-${try(alarm.severity, "warning")}-${alarm.dimension_value}"
+        metric_name = alarm.metric_name
+        namespace   = "ECS/ContainerInsights"
+        threshold   = alarm.threshold
+        comparison_operator = try(alarm.comparison, "GreaterThanOrEqualToThreshold")
+        evaluation_periods  = try(alarm.evaluation_periods, 2)
+        period              = try(alarm.period, 300)
+        statistic           = try(alarm.statistic, "Average")
+        alarm_description   = try(alarm.description, "Alarma ${try(alarm.severity, "warning")} para ${alarm.metric_name} en Container Insights ${alarm.dimension_value}")
+        dimensions = {
+          "${try(alarm.dimension_name, "ClusterName")}" = alarm.dimension_value
+        }
+        actions = try(alarm.actions, [])
+        datapoints_to_alarm = try(alarm.datapoints_to_alarm, 2)
+        treat_missing_data = try(alarm.treat_missing_data, "missing")
+      }
+    ])
+  ) : []
 }
+
+

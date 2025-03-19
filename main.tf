@@ -201,3 +201,49 @@ resource "aws_cloudwatch_metric_alarm" "dynamodb_alarm" {
   datapoints_to_alarm = each.value.datapoints_to_alarm
   treat_missing_data  = each.value.treat_missing_data
 }
+
+###########################################################
+# Alarma CloudWatch ECS
+###########################################################
+resource "aws_cloudwatch_metric_alarm" "ecs_alarm" {
+  for_each = var.ecs != null && try(var.ecs.create_alarms, false) && length(local.ecs_alarms) > 0 ? {
+    for alarm in local.ecs_alarms : alarm.alarm_name => alarm
+  } : {}
+
+  alarm_name          = each.value.alarm_name
+  comparison_operator = each.value.comparison_operator
+  evaluation_periods  = each.value.evaluation_periods
+  metric_name         = each.value.metric_name
+  namespace           = each.value.namespace
+  period              = each.value.period
+  statistic           = each.value.statistic
+  threshold           = each.value.threshold
+  alarm_description   = each.value.alarm_description
+  dimensions          = each.value.dimensions
+  alarm_actions       = each.value.actions
+  datapoints_to_alarm = each.value.datapoints_to_alarm
+  treat_missing_data  = each.value.treat_missing_data
+}
+
+###########################################################
+# Alarma CloudWatch ECS Container Insights
+###########################################################
+resource "aws_cloudwatch_metric_alarm" "ecs_insights_alarm" {
+  for_each = var.ecs_insights != null && try(var.ecs_insights.create_alarms, false) && length(local.ecs_insights_alarms) > 0 ? {
+    for alarm in local.ecs_insights_alarms : alarm.alarm_name => alarm
+  } : {}
+
+  alarm_name          = each.value.alarm_name
+  comparison_operator = each.value.comparison_operator
+  evaluation_periods  = each.value.evaluation_periods
+  metric_name         = each.value.metric_name
+  namespace           = each.value.namespace
+  period              = each.value.period
+  statistic           = each.value.statistic
+  threshold           = each.value.threshold
+  alarm_description   = each.value.alarm_description
+  dimensions          = each.value.dimensions
+  alarm_actions       = each.value.actions
+  datapoints_to_alarm = each.value.datapoints_to_alarm
+  treat_missing_data  = each.value.treat_missing_data
+}

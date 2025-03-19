@@ -8,31 +8,12 @@ variable "environment" {
 }
 
 variable "project" {
-  type = string  
+  type = string
 }
 
 variable "application" {
-  type = string  
+  type = string
 }
-
-# Categorías de Dashboard (opcional)
-# variable "categories" {
-#   description = "Habilitar o deshabilitar categorías de dashboard"
-#   type = object({
-#     compute = optional(bool, true)
-#     serverless = optional(bool, true)
-#     database = optional(bool, true)
-#     storage = optional(bool, true)
-#     networking = optional(bool, true)
-#   })
-#   default = {
-#     compute = true
-#     serverless = true
-#     database = true
-#     storage = true
-#     networking = true
-#   }
-# }
 
 ###########################################################
 # Variables EC2
@@ -40,76 +21,100 @@ variable "application" {
 variable "ec2" {
   description = "Configuración para dashboards y alarmas de EC2"
   type = object({
-    functionality    = optional(string,"computo")
-    create_dashboard = optional(bool,false)
-    create_alarms    = optional(bool,false)
-    tag_key          = optional(string,"EnableObservability")
+    functionality    = optional(string, "computo")
+    create_dashboard = optional(bool, false)
+    create_alarms    = optional(bool, false)
+    tag_key          = optional(string, "EnableObservability")
     tag_value        = optional(string, "true")
-    metrics          = optional(list(string), ["CPUUtilization", "NetworkIn", "NetworkOut"])
-    alarm_config     = optional(list(object({
-      metric_name        = string
-      threshold          = number
-      severity           = optional(string, "warning")
-      comparison         = optional(string, "GreaterThanOrEqualToThreshold")
-      description        = optional(string)
-      actions            = optional(list(string), [])
-      evaluation_periods = optional(number, 2)
-      period             = optional(number, 300)
-      statistic          = optional(string, "Average")
+    
+    # Configuración para los widgets del dashboard
+    dashboard_config = optional(list(object({
+      metric_name  = string
+      period       = optional(number, 300)
+      statistic    = optional(string, "Average")
+      width        = optional(number, 12)
+      height       = optional(number, 6)
+      title        = optional(string)
+    })), [])
+    
+    alarm_config = optional(list(object({
+      metric_name         = string
+      threshold           = number
+      severity            = optional(string, "warning")
+      comparison          = optional(string, "GreaterThanOrEqualToThreshold")
+      description         = optional(string)
+      actions             = optional(list(string), [])
+      evaluation_periods  = optional(number, 2)
+      period              = optional(number, 300)
+      statistic           = optional(string, "Average")
       datapoints_to_alarm = optional(number, 2)
       treat_missing_data  = optional(string, "missing")
     })), [])
   })
+  
   validation {
-    condition = (!try(var.ec2.create_alarms, false) || length(try(var.ec2.alarm_config, [])) > 0)
+    condition     = (!try(var.ec2.create_alarms, false) || length(try(var.ec2.alarm_config, [])) > 0)
     error_message = "Si 'create_alarms' es 'true', debes proporcionar 'alarm_config' con al menos una configuración de alarma."
   }
- validation {
-    condition = (!try(var.ec2.create_dashboard, false) || length(try(var.ec2.metrics, [])) > 0)
-    error_message = "Si 'create_dashboard' es 'true', debes proporcionar 'metrics' con al menos una métrica para visualizar."
-  }
   
+  validation {
+    condition     = (!try(var.ec2.create_dashboard, false) || length(try(var.ec2.dashboard_config, [])) > 0)
+    error_message = "Si 'create_dashboard' es 'true', debes proporcionar 'dashboard_config' con al menos una métrica para visualizar."
+  }
+
   default = null
 }
 
 ###########################################################
 # Variables RDS/Aurora
 ###########################################################
-variable "rds" {
-  description = "Configuración para dashboards y alarmas de RDS"
-  type = object({
-    functionality    = optional(string,"data")
-    create_dashboard = optional(bool, false)
-    create_alarms    = optional(bool, false)
-    tag_key          = optional(string,"EnableObservability")
-    tag_value        = optional(string, "true")
-    metrics          = optional(list(string), ["CPUUtilization", "DatabaseConnections", "FreeableMemory"])
-    alarm_config     = optional(list(object({
-      metric_name        = string
-      threshold          = number
-      severity           = optional(string, "warning")
-      comparison         = optional(string, "GreaterThanOrEqualToThreshold")
-      description        = optional(string)
-      actions            = optional(list(string), [])
-      evaluation_periods = optional(number, 2)
-      period             = optional(number, 300)
-      statistic          = optional(string, "Average")
-      datapoints_to_alarm = optional(number, 2)
-      treat_missing_data  = optional(string, "missing")
-    })), [])
-  })
-  validation {
-    condition = (!try(var.rds.create_alarms, false) || length(try(var.rds.alarm_config, [])) > 0)
-    error_message = "Si 'create_alarms' es 'true', debes proporcionar 'alarm_config' con al menos una configuración de alarma."
+  variable "rds" {
+    description = "Configuración para dashboards y alarmas de RDS"
+    type = object({
+      functionality    = optional(string, "data")
+      create_dashboard = optional(bool, false)
+      create_alarms    = optional(bool, false)
+      tag_key          = optional(string, "EnableObservability")
+      tag_value        = optional(string, "true")
+
+      # Configuración para los widgets del dashboard
+      dashboard_config = optional(list(object({
+        metric_name  = string
+        period       = optional(number, 300)
+        statistic    = optional(string, "Average")
+        width        = optional(number, 12)
+        height       = optional(number, 6)
+        title        = optional(string)
+      })), [])
+
+      # Configuración para las alarmas
+      alarm_config = optional(list(object({
+        metric_name         = string
+        threshold           = number
+        severity            = optional(string, "warning")
+        comparison          = optional(string, "GreaterThanOrEqualToThreshold")
+        description         = optional(string)
+        actions             = optional(list(string), [])
+        evaluation_periods  = optional(number, 2)
+        period              = optional(number, 300)
+        statistic           = optional(string, "Average")
+        datapoints_to_alarm = optional(number, 2)
+        treat_missing_data  = optional(string, "missing")
+      })), [])
+    })
+
+    validation {
+      condition     = (!try(var.rds.create_alarms, false) || length(try(var.rds.alarm_config, [])) > 0)
+      error_message = "Si 'create_alarms' es 'true', debes proporcionar 'alarm_config' con al menos una configuración de alarma."
+    }
+
+    validation {
+      condition     = (!try(var.rds.create_dashboard, false) || length(try(var.rds.dashboard_config, [])) > 0)
+      error_message = "Si 'create_dashboard' es 'true', debes proporcionar 'dashboard_config' con al menos una métrica para visualizar."
+    }
+
+    default = null
   }
-  
-  validation {
-    condition = (!try(var.rds.create_dashboard, false) || length(try(var.rds.metrics, [])) > 0)
-    error_message = "Si 'create_dashboard' es 'true', debes proporcionar 'metrics' con al menos una métrica para visualizar."
-  }
-  
-  default = null
-}
 
 ###########################################################
 # Variables Lambdas
@@ -122,27 +127,41 @@ variable "lambda" {
     tag_value        = optional(string, "true")
     create_dashboard = optional(bool, false)
     create_alarms    = optional(bool, false)
-    metrics          = optional(list(string), ["Invocations", "Duration", "Errors", "Throttles"])
-    alarm_config     = optional(list(object({
-      metric_name        = string
-      threshold          = number
-      severity           = optional(string, "warning")
-      comparison         = optional(string, "GreaterThanOrEqualToThreshold")
-      evaluation_periods = optional(number, 2)
-      period             = optional(number, 300)
-      statistic          = optional(string, "Average")
+    
+    # Configuración para los widgets del dashboard
+    dashboard_config = optional(list(object({
+      metric_name  = string
+      period       = optional(number, 300)
+      statistic    = optional(string, "Average")
+      width        = optional(number, 12)
+      height       = optional(number, 6)
+      title        = optional(string)
+    })), [])
+    
+    # Configuración para las alarmas
+    alarm_config = optional(list(object({
+      metric_name         = string
+      threshold           = number
+      severity            = optional(string, "warning")
+      comparison          = optional(string, "GreaterThanOrEqualToThreshold")
+      evaluation_periods  = optional(number, 2)
+      period              = optional(number, 300)
+      statistic           = optional(string, "Average")
       datapoints_to_alarm = optional(number, 2)
       treat_missing_data  = optional(string, "missing")
     })), [])
   })
+  
   validation {
-    condition = (!try(var.lambda.create_alarms, false) || length(try(var.lambda.alarm_config, [])) > 0)
+    condition     = (!try(var.lambda.create_alarms, false) || length(try(var.lambda.alarm_config, [])) > 0)
     error_message = "Si 'create_alarms' es 'true', debes proporcionar 'alarm_config' con al menos una configuración."
   }
+  
   validation {
-    condition = (!try(var.lambda.create_dashboard, false) || length(try(var.lambda.metrics, [])) > 0)
-    error_message = "Si 'create_dashboard' es 'true', debes proporcionar 'metrics' con al menos una métrica para visualizar."
+    condition     = (!try(var.lambda.create_dashboard, false) || length(try(var.lambda.dashboard_config, [])) > 0)
+    error_message = "Si 'create_dashboard' es 'true', debes proporcionar 'dashboard_config' con al menos una métrica para visualizar."
   }
+  
   default = null
 }
 
@@ -157,28 +176,39 @@ variable "alb" {
     create_alarms    = optional(bool, false)
     tag_key          = optional(string, "EnableObservability")
     tag_value        = optional(string, "true")
-    metrics          = optional(list(string), ["RequestCount", "TargetResponseTime", "HTTPCode_ELB_5XX_Count"])
-    alarm_config     = optional(list(object({
-      metric_name        = string
-      threshold          = number
-      severity           = optional(string, "warning")
-      comparison         = optional(string, "GreaterThanOrEqualToThreshold")
-      evaluation_periods = optional(number, 2)
-      period             = optional(number, 300)
-      statistic          = optional(string, "Average")
+    
+    dashboard_config = optional(list(object({
+      metric_name  = string
+      period       = optional(number, 300)
+      statistic    = optional(string, "Average")
+      width        = optional(number, 12)
+      height       = optional(number, 6)
+      title        = optional(string)
+    })), [])
+    
+    alarm_config = optional(list(object({
+      metric_name         = string
+      threshold           = number
+      severity            = optional(string, "warning")
+      comparison          = optional(string, "GreaterThanOrEqualToThreshold")
+      evaluation_periods  = optional(number, 2)
+      period              = optional(number, 300)
+      statistic           = optional(string, "Average")
       datapoints_to_alarm = optional(number, 2)
       treat_missing_data  = optional(string, "missing")
     })), [])
   })
+  
   validation {
-    condition = (!try(var.alb.create_alarms, false) || length(try(var.alb.alarm_config, [])) > 0 )
+    condition     = (!try(var.alb.create_alarms, false) || length(try(var.alb.alarm_config, [])) > 0)
     error_message = "Si 'create_alarms' es 'true', debes proporcionar 'alarm_config' con al menos una configuración."
   }
 
- validation {
-    condition = (!try(var.alb.create_dashboard, false) || length(try(var.alb.metrics, [])) > 0)
-    error_message = "Si 'create_dashboard' es 'true', debes proporcionar 'metrics' con al menos una métrica para visualizar."
+  validation {
+    condition     = (!try(var.alb.create_dashboard, false) || length(try(var.alb.dashboard_config, [])) > 0)
+    error_message = "Si 'create_dashboard' es 'true', debes proporcionar 'dashboard_config' con al menos una métrica para visualizar."
   }
+  
   default = null
 }
 
@@ -193,27 +223,41 @@ variable "nlb" {
     create_alarms    = optional(bool, false)
     tag_key          = optional(string, "EnableObservability")
     tag_value        = optional(string, "true")
-    metrics          = optional(list(string), ["ProcessedBytes", "NewFlowCount", "ActiveFlowCount", "HealthyHostCount"])
-    alarm_config     = optional(list(object({
-      metric_name        = string
-      threshold          = number
-      severity           = optional(string, "warning")
-      comparison         = optional(string, "GreaterThanOrEqualToThreshold")
-      evaluation_periods = optional(number, 2)
-      period             = optional(number, 300)
-      statistic          = optional(string, "Average")
+    
+    # Configuración para los widgets del dashboard
+    dashboard_config = optional(list(object({
+      metric_name  = string
+      period       = optional(number, 300)
+      statistic    = optional(string, "Average")
+      width        = optional(number, 12)
+      height       = optional(number, 6)
+      title        = optional(string)
+    })), [])
+    
+    # Configuración para las alarmas
+    alarm_config = optional(list(object({
+      metric_name         = string
+      threshold           = number
+      severity            = optional(string, "warning")
+      comparison          = optional(string, "GreaterThanOrEqualToThreshold")
+      evaluation_periods  = optional(number, 2)
+      period              = optional(number, 300)
+      statistic           = optional(string, "Average")
       datapoints_to_alarm = optional(number, 2)
       treat_missing_data  = optional(string, "missing")
     })), [])
   })
+  
   validation {
-    condition = (!try(var.nlb.create_alarms, false) || length(try(var.nlb.alarm_config, [])) > 0 )
+    condition     = (!try(var.nlb.create_alarms, false) || length(try(var.nlb.alarm_config, [])) > 0)
     error_message = "Si 'create_alarms' es 'true', debes proporcionar 'alarm_config' con al menos una configuración."
   }
+  
   validation {
-    condition = (!try(var.nlb.create_dashboard, false) || length(try(var.nlb.metrics, [])) > 0)
-    error_message = "Si 'create_dashboard' es 'true', debes proporcionar 'metrics' con al menos una métrica para visualizar."
+    condition     = (!try(var.nlb.create_dashboard, false) || length(try(var.nlb.dashboard_config, [])) > 0)
+    error_message = "Si 'create_dashboard' es 'true', debes proporcionar 'dashboard_config' con al menos una métrica para visualizar."
   }
+  
   default = null
 }
 
@@ -228,27 +272,45 @@ variable "s3" {
     create_alarms    = optional(bool, false)
     tag_key          = optional(string, "EnableObservability")
     tag_value        = optional(string, "true")
-    metrics          = optional(list(string), ["NumberOfObjects", "BucketSizeBytes"])
-    alarm_config     = optional(list(object({
-      metric_name        = string
-      threshold          = number
-      severity           = optional(string, "warning")
-      comparison         = optional(string, "GreaterThanOrEqualToThreshold")
-      evaluation_periods = optional(number, 2)
-      period             = optional(number, 300)
-      statistic          = optional(string, "Average")
+    
+    # Configuración para los widgets del dashboard
+    dashboard_config = optional(list(object({
+      metric_name  = string
+      period       = optional(number, 300)
+      statistic    = optional(string, "Average")
+      storage_type = optional(string)  # Solo para S3
+      width        = optional(number, 12)
+      height       = optional(number, 6)
+      title        = optional(string)
+    })), [])
+    
+    # Configuración para las alarmas
+    alarm_config = optional(list(object({
+      metric_name         = string
+      threshold           = number
+      severity            = optional(string, "warning")
+      comparison          = optional(string, "GreaterThanOrEqualToThreshold")
+      description         = optional(string)
+      actions             = optional(list(string), [])
+      evaluation_periods  = optional(number, 2)
+      period              = optional(number, 300)
+      statistic           = optional(string, "Average")
       datapoints_to_alarm = optional(number, 2)
       treat_missing_data  = optional(string, "missing")
+      storage_type        = optional(string, "Standard")
     })), [])
   })
+  
   validation {
-    condition = (!try(var.s3.create_alarms, false) || length(try(var.s3.alarm_config, [])) > 0 )
+    condition     = (!try(var.s3.create_alarms, false) || length(try(var.s3.alarm_config, [])) > 0)
     error_message = "Si 'create_alarms' es 'true', debes proporcionar 'alarm_config' con al menos una configuración."
   }
+  
   validation {
-    condition = (!try(var.s3.create_dashboard, false) || length(try(var.s3.metrics, [])) > 0)
-    error_message = "Si 'create_dashboard' es 'true', debes proporcionar 'metrics' con al menos una métrica para visualizar."
+    condition     = (!try(var.s3.create_dashboard, false) || length(try(var.s3.dashboard_config, [])) > 0)
+    error_message = "Si 'create_dashboard' es 'true', debes proporcionar 'dashboard_config' con al menos una métrica para visualizar."
   }
+  
   default = null
 }
 
@@ -263,27 +325,41 @@ variable "apigateway" {
     create_alarms    = optional(bool, false)
     tag_key          = optional(string, "EnableObservability")
     tag_value        = optional(string, "true")
-    metrics          = optional(list(string), ["Latency", "5XXError", "4XXError", "IntegrationLatency"])
-    alarm_config     = optional(list(object({
-      metric_name        = string
-      threshold          = number
-      severity           = optional(string, "warning")
-      comparison         = optional(string, "GreaterThanOrEqualToThreshold")
-      evaluation_periods = optional(number, 2)
-      period             = optional(number, 300)
-      statistic          = optional(string, "Average")
+    
+    # Configuración para los widgets del dashboard
+    dashboard_config = optional(list(object({
+      metric_name  = string
+      period       = optional(number, 300)
+      statistic    = optional(string, "Average")
+      width        = optional(number, 12)
+      height       = optional(number, 6)
+      title        = optional(string)
+    })), [])
+    
+    # Configuración para las alarmas
+    alarm_config = optional(list(object({
+      metric_name         = string
+      threshold           = number
+      severity            = optional(string, "warning")
+      comparison          = optional(string, "GreaterThanOrEqualToThreshold")
+      evaluation_periods  = optional(number, 2)
+      period              = optional(number, 300)
+      statistic           = optional(string, "Average")
       datapoints_to_alarm = optional(number, 2)
       treat_missing_data  = optional(string, "missing")
     })), [])
   })
+  
   validation {
-    condition = (!try(var.apigateway.create_alarms, false) || length(try(var.apigateway.alarm_config, [])) > 0 )
+    condition     = (!try(var.apigateway.create_alarms, false) || length(try(var.apigateway.alarm_config, [])) > 0)
     error_message = "Si 'create_alarms' es 'true', debes proporcionar 'alarm_config' con al menos una configuración."
   }
+  
   validation {
-    condition = (!try(var.apigateway.create_dashboard, false) || length(try(var.apigateway.metrics, [])) > 0)
-    error_message = "Si 'create_dashboard' es 'true', debes proporcionar 'metrics' con al menos una métrica para visualizar."
+    condition     = (!try(var.apigateway.create_dashboard, false) || length(try(var.apigateway.dashboard_config, [])) > 0)
+    error_message = "Si 'create_dashboard' es 'true', debes proporcionar 'dashboard_config' con al menos una métrica para visualizar."
   }
+  
   default = null
 }
 
@@ -298,27 +374,145 @@ variable "dynamodb" {
     create_alarms    = optional(bool, false)
     tag_key          = optional(string, "EnableObservability")
     tag_value        = optional(string, "true")
-    metrics          = optional(list(string), ["ConsumedReadCapacityUnits", "ConsumedWriteCapacityUnits", "ThrottledRequests", "ReadThrottleEvents", "WriteThrottleEvents"])
-    # Nuevo campo para configuraciones de alarmas más flexibles
-    alarm_config     = optional(list(object({
-      metric_name        = string
-      threshold          = number
-      severity           = optional(string, "warning")
-      comparison         = optional(string, "GreaterThanOrEqualToThreshold")
-      evaluation_periods = optional(number, 2)
-      period             = optional(number, 300)
-      statistic          = optional(string, "Average")
+    
+    # Configuración para los widgets del dashboard
+    dashboard_config = optional(list(object({
+      metric_name  = string
+      period       = optional(number, 300)
+      statistic    = optional(string, "Average")
+      width        = optional(number, 12)
+      height       = optional(number, 6)
+      title        = optional(string)
+    })), [])
+    
+    # Configuración para las alarmas
+    alarm_config = optional(list(object({
+      metric_name         = string
+      threshold           = number
+      severity            = optional(string, "warning")
+      comparison          = optional(string, "GreaterThanOrEqualToThreshold")
+      evaluation_periods  = optional(number, 2)
+      period              = optional(number, 300)
+      statistic           = optional(string, "Average")
       datapoints_to_alarm = optional(number, 2)
       treat_missing_data  = optional(string, "missing")
     })), [])
   })
+  
   validation {
-    condition = (!try(var.dynamodb.create_alarms, false) || length(try(var.apigateway.alarm_config, [])) > 0 )
+    condition     = (!try(var.dynamodb.create_alarms, false) || length(try(var.dynamodb.alarm_config, [])) > 0)
     error_message = "Si 'create_alarms' es 'true', debes proporcionar 'alarm_config' con al menos una configuración."
   }
+  
   validation {
-    condition = (!try(var.dynamodb.create_dashboard, false) || length(try(var.apigateway.metrics, [])) > 0)
-    error_message = "Si 'create_dashboard' es 'true', debes proporcionar 'metrics' con al menos una métrica para visualizar."
+    condition     = (!try(var.dynamodb.create_dashboard, false) || length(try(var.dynamodb.dashboard_config, [])) > 0)
+    error_message = "Si 'create_dashboard' es 'true', debes proporcionar 'dashboard_config' con al menos una métrica para visualizar."
   }
+  
+  default = null
+}
+
+###########################################################
+# Variables ECS
+###########################################################
+
+variable "ecs" {
+  description = "Configuración para dashboards y alarmas de ECS (métricas estándar)"
+  type = object({
+    functionality    = optional(string, "ecs")
+    create_dashboard = optional(bool, false)
+    create_alarms    = optional(bool, false)
+    tag_key          = optional(string, "EnableObservability")
+    tag_value        = optional(string, "true")
+    
+    dashboard_config = optional(list(object({
+      metric_name     = string
+      dimension_name  = optional(string, "ClusterName")  # ClusterName o ServiceName
+      period          = optional(number, 300)
+      statistic       = optional(string, "Average")
+      width           = optional(number, 12)
+      height          = optional(number, 6)
+      title           = optional(string)
+    })), [])
+    
+    alarm_config = optional(list(object({
+      metric_name         = string
+      dimension_name      = optional(string, "ClusterName")
+      dimension_value     = string
+      threshold           = number
+      severity            = optional(string, "warning")
+      comparison          = optional(string, "GreaterThanOrEqualToThreshold")
+      description         = optional(string)
+      actions             = optional(list(string), [])
+      evaluation_periods  = optional(number, 2)
+      period              = optional(number, 300)
+      statistic           = optional(string, "Average")
+      datapoints_to_alarm = optional(number, 2)
+      treat_missing_data  = optional(string, "missing")
+    })), [])
+  })
+  
+  validation {
+    condition     = (!try(var.ecs.create_alarms, false) || length(try(var.ecs.alarm_config, [])) > 0)
+    error_message = "Si 'create_alarms' es 'true', debes proporcionar 'alarm_config' con al menos una configuración."
+  }
+  
+  validation {
+    condition     = (!try(var.ecs.create_dashboard, false) || length(try(var.ecs.dashboard_config, [])) > 0)
+    error_message = "Si 'create_dashboard' es 'true', debes proporcionar 'dashboard_config' con al menos una métrica para visualizar."
+  }
+  
+  default = null
+}
+
+###########################################################
+# Variables ECS Insights
+###########################################################
+variable "ecs_insights" {
+  description = "Configuración para dashboards y alarmas de ECS Container Insights (métricas avanzadas)"
+  type = object({
+    functionality    = optional(string, "ecs_insights")
+    create_dashboard = optional(bool, false)
+    create_alarms    = optional(bool, false)
+    tag_key          = optional(string, "EnableObservability")
+    tag_value        = optional(string, "true")
+    
+    dashboard_config = optional(list(object({
+      metric_name     = string
+      dimension_name  = optional(string, "ClusterName")  # ClusterName, ServiceName, TaskDefinitionFamily
+      period          = optional(number, 300)
+      statistic       = optional(string, "Average")
+      width           = optional(number, 12)
+      height          = optional(number, 6)
+      title           = optional(string)
+    })), [])
+    
+    alarm_config = optional(list(object({
+      metric_name         = string
+      dimension_name      = optional(string, "ClusterName")
+      dimension_value     = string
+      threshold           = number
+      severity            = optional(string, "warning")
+      comparison          = optional(string, "GreaterThanOrEqualToThreshold")
+      description         = optional(string)
+      actions             = optional(list(string), [])
+      evaluation_periods  = optional(number, 2)
+      period              = optional(number, 300)
+      statistic           = optional(string, "Average")
+      datapoints_to_alarm = optional(number, 2)
+      treat_missing_data  = optional(string, "missing")
+    })), [])
+  })
+  
+  validation {
+    condition     = (!try(var.ecs_insights.create_alarms, false) || length(try(var.ecs_insights.alarm_config, [])) > 0)
+    error_message = "Si 'create_alarms' es 'true', debes proporcionar 'alarm_config' con al menos una configuración."
+  }
+  
+  validation {
+    condition     = (!try(var.ecs_insights.create_dashboard, false) || length(try(var.ecs_insights.dashboard_config, [])) > 0)
+    error_message = "Si 'create_dashboard' es 'true', debes proporcionar 'dashboard_config' con al menos una métrica para visualizar."
+  }
+  
   default = null
 }
