@@ -529,12 +529,158 @@ module "observability" {
       }
     ]
   }
+  # ECS estándar
+  ecs = {
+    functionality    = "ecs"
+    create_dashboard = true
+    create_alarms    = true
+    tag_key          = "EnableObservability"
+    tag_value        = "true"
+    
+    # Configuración del dashboard
+    dashboard_config = [
+      # Métricas de Cluster
+      {
+        metric_name    = "CPUUtilization"
+        dimension_name = "ClusterName"
+        period         = 300
+        statistic      = "Average"
+        title          = "Utilización de CPU por Cluster"
+        width          = 12
+        height         = 6
+      },
+      {
+        metric_name    = "MemoryUtilization"
+        dimension_name = "ClusterName"
+        period         = 300
+        statistic      = "Average"
+        title          = "Utilización de Memoria por Cluster"
+        width          = 12
+        height         = 6
+      },
+      
+      # Métricas de Servicio
+      {
+        metric_name    = "CPUUtilization"
+        dimension_name = "ServiceName"
+        period         = 300
+        statistic      = "Average"
+        title          = "Utilización de CPU por Servicio"
+        width          = 12
+        height         = 6
+      },
+      {
+        metric_name    = "MemoryUtilization"
+        dimension_name = "ServiceName"
+        period         = 300
+        statistic      = "Average"
+        title          = "Utilización de Memoria por Servicio"
+        width          = 12
+        height         = 6
+      }
+    ],
+    
+    # Configuración de alarmas
+    alarm_config = [
+      {
+        metric_name     = "CPUUtilization"
+        dimension_name  = "ClusterName"
+        dimension_value = "production-cluster"
+        threshold       = 80
+        severity        = "warning"
+        description     = "Utilización de CPU alta en cluster ECS"
+        actions         = ["arn:aws:sns:us-east-1:123456789012:alert-warning"]
+      },
+      {
+        metric_name     = "MemoryUtilization"
+        dimension_name  = "ClusterName"
+        dimension_value = "production-cluster"
+        threshold       = 80
+        severity        = "warning"
+        description     = "Utilización de memoria alta en cluster ECS"
+        actions         = ["arn:aws:sns:us-east-1:123456789012:alert-warning"]
+      }
+    ]
+  }
+  
+  # Container Insights
+  ecs_insights = {
+    functionality    = "ecs_insights"
+    create_dashboard = true
+    create_alarms    = true
+    tag_key          = "EnableObservability"
+    tag_value        = "true"
+    
+    # Configuración del dashboard
+    dashboard_config = [
+      {
+        metric_name    = "RunningTaskCount"
+        dimension_name = "ClusterName"
+        period         = 300
+        statistic      = "Average"
+        title          = "Tareas en Ejecución por Cluster"
+        width          = 12
+        height         = 6
+      },
+      {
+        metric_name    = "PendingTaskCount"
+        dimension_name = "ClusterName"
+        period         = 300
+        statistic      = "Average"
+        title          = "Tareas Pendientes por Cluster"
+        width          = 12
+        height         = 6
+      },
+      {
+        metric_name    = "TaskCPUUtilization"
+        dimension_name = "ServiceName"
+        period         = 300
+        statistic      = "Average"
+        title          = "Utilización de CPU por Tarea"
+        width          = 12
+        height         = 6
+      },
+      {
+        metric_name    = "TaskMemoryUtilization"
+        dimension_name = "ServiceName"
+        period         = 300
+        statistic      = "Average"
+        title          = "Utilización de Memoria por Tarea"
+        width          = 12
+        height         = 6
+      }
+    ],
+    
+    # Configuración de alarmas
+    alarm_config = [
+      {
+        metric_name     = "RunningTaskCount"
+        dimension_name  = "ServiceName"
+        dimension_value = "web-service"
+        threshold       = 1
+        comparison      = "LessThanOrEqualToThreshold"
+        severity        = "critical"
+        description     = "Servicio con pocas tareas en ejecución"
+        actions         = ["arn:aws:sns:us-east-1:123456789012:alert-critical"]
+      },
+      {
+        metric_name     = "TaskCPUUtilization"
+        dimension_name  = "ServiceName"
+        dimension_value = "web-service"
+        threshold       = 90
+        severity        = "warning"
+        description     = "Utilización de CPU alta en tareas"
+        actions         = ["arn:aws:sns:us-east-1:123456789012:alert-warning"]
+      }
+    ]
+  }
 }
 
-#Textra
-#ECS - Service - Task
+
+#ECS - Service - Task - OK
 #ECR
 
+#Textra
 #Cloudfront
 #WAF
 #SQS 
