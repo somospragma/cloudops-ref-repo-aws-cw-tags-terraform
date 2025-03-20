@@ -17,6 +17,12 @@ locals {
       "properties" = { "markdown" = "# **Dashboard Monitoreo Infraestructura**" }
     }
   ]
+  
+  ###########################################################
+  # Local Default Cluster Name
+  ###########################################################
+
+  default_cluster_name = length(local.ecs_clusters_filtered) > 0 ? local.ecs_clusters_filtered[0] : ""
 
   ###########################################################
   # Filtros RDS 
