@@ -356,13 +356,13 @@ locals {
       "properties" = merge(
         local.common_widget_properties,
         {
-          "title"  = try(config.title, "${config.metric_name} ECS"),
-          "period" = try(config.period, 300),
+          "title"   = try(config.title, "${config.metric_name} ECS"),
+          "period"  = try(config.period, 300),
           "metrics" = try(config.dimension_name, "ClusterName") == "ClusterName" ? [
             for cluster in local.ecs_clusters_filtered : [
               "AWS/ECS", config.metric_name, "ClusterName", cluster
             ]
-            ] : try(config.dimension_name, "ClusterName") == "ServiceName" ? [
+          ] : try(config.dimension_name, "ClusterName") == "ServiceName" ? [
             for service in local.ecs_services_filtered : [
               "AWS/ECS", config.metric_name, "ClusterName", service.cluster_name, "ServiceName", service.service_name
             ]
@@ -370,7 +370,7 @@ locals {
           "statistic" = try(config.statistic, "Average")
         }
       )
-    }
+    } 
   ] : []
 
 ###########################################################

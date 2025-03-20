@@ -10,7 +10,9 @@ resource "aws_cloudwatch_dashboard" "unified_dashboard" {
     (try(var.nlb != null && var.nlb.create_dashboard, false) && length(local.nlb_filtered) > 0) ||
     (try(var.s3 != null && var.s3.create_dashboard, false) && length(local.s3_buckets_filtered) > 0) ||
     (try(var.apigateway != null && var.apigateway.create_dashboard, false) && length(local.apigateway_filtered) > 0) ||
-    (try(var.dynamodb != null && var.dynamodb.create_dashboard, false) && length(local.dynamodb_filtered) > 0)
+    (try(var.dynamodb != null && var.dynamodb.create_dashboard, false) && length(local.dynamodb_filtered) > 0) ||
+    (try(var.ecs != null && var.ecs.create_dashboard, false) && (length(local.ecs_clusters_filtered) > 0 || length(local.ecs_services_filtered) > 0)) ||
+    (try(var.ecs_insights != null && var.ecs_insights.create_dashboard, false) && (length(local.ecs_clusters_filtered) > 0 || length(local.ecs_services_filtered) > 0))
   ) ? 1 : 0
 
   dashboard_name = "${var.client}-${var.project}-${var.environment}-${var.application}-unified"

@@ -1,5 +1,5 @@
 aws_region         = "us-east-1"
-profile            = "pra_chaptercloudops_lab"
+profile            = "pra_idp_dev"
 environment        = "dev"
 client             = "pragma"
 project            = "hefesto"
