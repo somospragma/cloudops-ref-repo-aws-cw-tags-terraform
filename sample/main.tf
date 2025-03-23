@@ -83,20 +83,6 @@ module "observability" {
         statistic          = "Average"
       }
     ]
-
-    # alarm_config = [
-    #   {
-    #     metric_name     = "RunningTaskCount"
-    #     dimension_name  = "ServiceName"
-    #     dimension_value = "servicio-especial"
-    #     cluster_name    = "mi-cluster"
-    #     threshold       = 1
-    #     severity        = "critical"
-    #     comparison      = "LessThanThreshold"
-    #     description     = "Alerta si el servicio especial no tiene tareas en ejecución"
-    #     actions         = ["arn:aws:sns:us-east-1:123456789012:alert-critical"]
-    #   }
-    # ]
   }
   ecs_insights = {
     create_dashboard = true
@@ -125,8 +111,150 @@ module "observability" {
       }
     ]
   }
+  rds = {
+    create_dashboard = true
+    create_alarms    = true
+    tag_key          = "EnableObservability"
+    tag_value        = "true"
+    
+    # Configuración del dashboard de Aurora RDS
+    dashboard_config = [
+      # CPU Utilization
+      {
+        metric_name  = "CPUUtilization"
+        period       = 300
+        statistic    = "Average"
+        width        = 12
+        height       = 6
+        title        = "Aurora RDS - CPU Utilization (%)"
+      },
+      # Freeable Memory
+      {
+        metric_name  = "FreeableMemory"
+        period       = 300
+        statistic    = "Average"
+        width        = 12
+        height       = 6
+        title        = "Aurora RDS - Freeable Memory (Bytes)"
+      },
+      # Database Connections
+      {
+        metric_name  = "DatabaseConnections"
+        period       = 300
+        statistic    = "Average"
+        width        = 12
+        height       = 6
+        title        = "Aurora RDS - Database Connections"
+      },
+      # Read IOPs
+      {
+        metric_name  = "ReadIOPS"
+        period       = 300
+        statistic    = "Average"
+        width        = 12
+        height       = 6
+        title        = "Aurora RDS - Read IOPS"
+      },
+      # Write IOPs
+      {
+        metric_name  = "WriteIOPS"
+        period       = 300
+        statistic    = "Average"
+        width        = 12
+        height       = 6
+        title        = "Aurora RDS - Write IOPS"
+      }
+    ],
+    
+    # Configuración de alarmas para Aurora RDS
+    alarm_config = [
+      # CPU Utilization - Warning
+      {
+        metric_name         = "CPUUtilization"
+        threshold           = 75
+        severity            = "warning"
+        comparison          = "GreaterThanOrEqualToThreshold"
+        description         = "Aurora RDS CPU utilization is above 75%"
+        actions             = ["arn:aws:sns:us-east-1:123456789012:alert-warning"]
+        evaluation_periods  = 3
+        period              = 300
+        statistic           = "Average"
+        datapoints_to_alarm = 3
+        treat_missing_data  = "missing"
+      },
+      # CPU Utilization - Critical
+      {
+        metric_name         = "CPUUtilization"
+        threshold           = 90
+        severity            = "critical"
+        comparison          = "GreaterThanOrEqualToThreshold"
+        description         = "Aurora RDS CPU utilization is above 90%"
+        actions             = ["arn:aws:sns:us-east-1:123456789012:alert-critical"]
+        evaluation_periods  = 3
+        period              = 300
+        statistic           = "Average"
+        datapoints_to_alarm = 2
+        treat_missing_data  = "missing"
+      },
+      # Freeable Memory - Warning
+      {
+        metric_name         = "FreeableMemory"
+        threshold           = 2000000000  # 2 GB en bytes
+        severity            = "warning"
+        comparison          = "LessThanOrEqualToThreshold"
+        description         = "Aurora RDS Freeable Memory is below 2GB"
+        actions             = ["arn:aws:sns:us-east-1:123456789012:alert-warning"]
+        evaluation_periods  = 3
+        period              = 300
+        statistic           = "Average"
+        datapoints_to_alarm = 3
+        treat_missing_data  = "missing"
+      },
+      # Freeable Memory - Critical
+      {
+        metric_name         = "FreeableMemory"
+        threshold           = 1000000000  # 1 GB en bytes
+        severity            = "critical"
+        comparison          = "LessThanOrEqualToThreshold"
+        description         = "Aurora RDS Freeable Memory is below 1GB"
+        actions             = ["arn:aws:sns:us-east-1:123456789012:alert-critical"]
+        evaluation_periods  = 3
+        period              = 300
+        statistic           = "Average"
+        datapoints_to_alarm = 2
+        treat_missing_data  = "missing"
+      },
+      # Database Connections - Warning
+      {
+        metric_name         = "DatabaseConnections"
+        threshold           = 450  # Ajusta según los límites de tu instancia
+        severity            = "warning"
+        comparison          = "GreaterThanOrEqualToThreshold"
+        description         = "Aurora RDS Database Connections are above 450"
+        actions             = ["arn:aws:sns:us-east-1:123456789012:alert-warning"]
+        evaluation_periods  = 3
+        period              = 300
+        statistic           = "Average"
+        datapoints_to_alarm = 3
+        treat_missing_data  = "missing"
+      },
+      # Database Connections - Critical
+      {
+        metric_name         = "DatabaseConnections"
+        threshold           = 500  # Ajusta según los límites de tu instancia
+        severity            = "critical"
+        comparison          = "GreaterThanOrEqualToThreshold"
+        description         = "Aurora RDS Database Connections are above 500"
+        actions             = ["arn:aws:sns:us-east-1:123456789012:alert-critical"]
+        evaluation_periods  = 3
+        period              = 300
+        statistic           = "Average"
+        datapoints_to_alarm = 2
+        treat_missing_data  = "missing"
+      }
+    ]
+  }
 }
-
 
 # Cloudfront
 # SQS
