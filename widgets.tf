@@ -426,10 +426,11 @@ locals {
     
     # Container section
     local.container_section_header,
-    local.ecs_section_header,
-    local.ecs_metric_widgets,
     local.ecs_insights_section_header,
     local.ecs_insights_metric_widgets,
+    local.ecs_section_header,
+    local.ecs_metric_widgets,
+
     
     # Serverless section
     local.serverless_section_header,

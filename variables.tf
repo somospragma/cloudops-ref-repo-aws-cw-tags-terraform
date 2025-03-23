@@ -435,6 +435,7 @@ variable "ecs" {
       title           = optional(string)
     })), [])
     
+    # Configuración para alarmas específicas
     alarm_config = optional(list(object({
       metric_name         = string
       dimension_name      = optional(string, "ClusterName")
@@ -449,12 +450,29 @@ variable "ecs" {
       statistic           = optional(string, "Average")
       datapoints_to_alarm = optional(number, 2)
       treat_missing_data  = optional(string, "missing")
+    })), []),
+    
+    # Plantillas de alarmas que se aplicarán a todos los servicios descubiertos
+    service_alarm_templates = optional(list(object({
+      metric_name         = string
+      threshold           = number
+      severity            = optional(string, "warning")
+      comparison          = optional(string, "GreaterThanOrEqualToThreshold")
+      description         = optional(string)
+      actions             = optional(list(string), [])
+      evaluation_periods  = optional(number, 2)
+      period              = optional(number, 300)
+      statistic           = optional(string, "Average")
+      datapoints_to_alarm = optional(number, 2)
+      treat_missing_data  = optional(string, "missing")
     })), [])
   })
   
   validation {
-    condition     = (!try(var.ecs.create_alarms, false) || length(try(var.ecs.alarm_config, [])) > 0)
-    error_message = "Si 'create_alarms' es 'true', debes proporcionar 'alarm_config' con al menos una configuración."
+    condition     = (!try(var.ecs.create_alarms, false) || 
+                     length(try(var.ecs.alarm_config, [])) > 0 || 
+                     length(try(var.ecs.service_alarm_templates, [])) > 0)
+    error_message = "Si 'create_alarms' es 'true', debes proporcionar 'alarm_config' o 'service_alarm_templates' con al menos una configuración."
   }
   
   validation {
@@ -468,6 +486,7 @@ variable "ecs" {
 ###########################################################
 # Variables ECS Insights
 ###########################################################
+
 variable "ecs_insights" {
   description = "Configuración para dashboards y alarmas de ECS Container Insights (métricas avanzadas)"
   type = object({
@@ -479,7 +498,7 @@ variable "ecs_insights" {
     
     dashboard_config = optional(list(object({
       metric_name     = string
-      dimension_name  = optional(string, "ClusterName")  # ClusterName, ServiceName, TaskDefinitionFamily
+      dimension_name  = optional(string, "ClusterName")
       period          = optional(number, 300)
       statistic       = optional(string, "Average")
       width           = optional(number, 12)
@@ -487,6 +506,7 @@ variable "ecs_insights" {
       title           = optional(string)
     })), [])
     
+    # Configuración para alarmas específicas
     alarm_config = optional(list(object({
       metric_name         = string
       dimension_name      = optional(string, "ClusterName")
@@ -501,12 +521,30 @@ variable "ecs_insights" {
       statistic           = optional(string, "Average")
       datapoints_to_alarm = optional(number, 2)
       treat_missing_data  = optional(string, "missing")
+      cluster_name        = optional(string)
+    })), [])
+    
+    # Plantillas de alarmas que se aplicarán a todos los servicios descubiertos
+    service_alarm_templates = optional(list(object({
+      metric_name         = string
+      threshold           = number
+      severity            = optional(string, "warning")
+      comparison          = optional(string, "GreaterThanOrEqualToThreshold")
+      description         = optional(string)
+      actions             = optional(list(string), [])
+      evaluation_periods  = optional(number, 2)
+      period              = optional(number, 300)
+      statistic           = optional(string, "Average")
+      datapoints_to_alarm = optional(number, 2)
+      treat_missing_data  = optional(string, "missing")
     })), [])
   })
   
   validation {
-    condition     = (!try(var.ecs_insights.create_alarms, false) || length(try(var.ecs_insights.alarm_config, [])) > 0)
-    error_message = "Si 'create_alarms' es 'true', debes proporcionar 'alarm_config' con al menos una configuración."
+    condition     = (!try(var.ecs_insights.create_alarms, false) || 
+                     length(try(var.ecs_insights.alarm_config, [])) > 0 || 
+                     length(try(var.ecs_insights.service_alarm_templates, [])) > 0)
+    error_message = "Si 'create_alarms' es 'true', debes proporcionar 'alarm_config' o 'service_alarm_templates' con al menos una configuración."
   }
   
   validation {
