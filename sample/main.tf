@@ -43,7 +43,9 @@ module "observability" {
         severity           = "warning"
         comparison         = "GreaterThanOrEqualToThreshold"
         description        = "Porcentaje de CPU por encima del 80% (warning)"
-        actions            = ["arn:aws:sns:us-east-1:123456789012:alert-warning"]
+        alarm_actions             = ["arn:aws:sns:us-east-1:123456789012:alert-critical"]
+        insufficient_data_actions = ["arn:aws:sns:us-east-1:123456789012:alert-critical"]
+        ok_actions                = ["arn:aws:sns:us-east-1:123456789012:alert-critical"]
         evaluation_periods = 3
         period             = 300
         statistic          = "Average"
@@ -54,7 +56,9 @@ module "observability" {
         severity           = "critical"
         comparison         = "GreaterThanOrEqualToThreshold"
         description        = "Porcentaje de CPU por encima del 90% (critical)"
-        actions            = ["arn:aws:sns:us-east-1:123456789012:alert-critical"]
+        alarm_actions             = ["arn:aws:sns:us-east-1:123456789012:alert-critical"]
+        insufficient_data_actions = ["arn:aws:sns:us-east-1:123456789012:alert-critical"]
+        ok_actions                = ["arn:aws:sns:us-east-1:123456789012:alert-critical"]
         evaluation_periods = 3
         period             = 300
         statistic          = "Average"
@@ -66,7 +70,9 @@ module "observability" {
         severity           = "warning"
         comparison         = "GreaterThanOrEqualToThreshold"
         description        = "Porcentaje de memoria por encima del 80% (warning)"
-        actions            = ["arn:aws:sns:us-east-1:123456789012:alert-warning"]
+        alarm_actions             = ["arn:aws:sns:us-east-1:123456789012:alert-critical"]
+        insufficient_data_actions = ["arn:aws:sns:us-east-1:123456789012:alert-critical"]
+        ok_actions                = ["arn:aws:sns:us-east-1:123456789012:alert-critical"]
         evaluation_periods = 3
         period             = 300
         statistic          = "Average"
@@ -77,7 +83,9 @@ module "observability" {
         severity           = "critical"
         comparison         = "GreaterThanOrEqualToThreshold"
         description        = "Porcentaje de memoria por encima del 90% (critical)"
-        actions            = ["arn:aws:sns:us-east-1:123456789012:alert-critical"]
+        alarm_actions             = ["arn:aws:sns:us-east-1:123456789012:alert-critical"]
+        insufficient_data_actions = ["arn:aws:sns:us-east-1:123456789012:alert-critical"]
+        ok_actions                = ["arn:aws:sns:us-east-1:123456789012:alert-critical"]
         evaluation_periods = 3
         period             = 300
         statistic          = "Average"
@@ -116,56 +124,56 @@ module "observability" {
     create_alarms    = true
     tag_key          = "EnableObservability"
     tag_value        = "true"
-    
+
     # Configuración del dashboard de Aurora RDS
     dashboard_config = [
       # CPU Utilization
       {
-        metric_name  = "CPUUtilization"
-        period       = 300
-        statistic    = "Average"
-        width        = 12
-        height       = 6
-        title        = "Aurora RDS - CPU Utilization (%)"
+        metric_name = "CPUUtilization"
+        period      = 300
+        statistic   = "Average"
+        width       = 12
+        height      = 6
+        title       = "Aurora RDS - CPU Utilization (%)"
       },
       # Freeable Memory
       {
-        metric_name  = "FreeableMemory"
-        period       = 300
-        statistic    = "Average"
-        width        = 12
-        height       = 6
-        title        = "Aurora RDS - Freeable Memory (Bytes)"
+        metric_name = "FreeableMemory"
+        period      = 300
+        statistic   = "Average"
+        width       = 12
+        height      = 6
+        title       = "Aurora RDS - Freeable Memory (Bytes)"
       },
       # Database Connections
       {
-        metric_name  = "DatabaseConnections"
-        period       = 300
-        statistic    = "Average"
-        width        = 12
-        height       = 6
-        title        = "Aurora RDS - Database Connections"
+        metric_name = "DatabaseConnections"
+        period      = 300
+        statistic   = "Average"
+        width       = 12
+        height      = 6
+        title       = "Aurora RDS - Database Connections"
       },
       # Read IOPs
       {
-        metric_name  = "ReadIOPS"
-        period       = 300
-        statistic    = "Average"
-        width        = 12
-        height       = 6
-        title        = "Aurora RDS - Read IOPS"
+        metric_name = "ReadIOPS"
+        period      = 300
+        statistic   = "Average"
+        width       = 12
+        height      = 6
+        title       = "Aurora RDS - Read IOPS"
       },
       # Write IOPs
       {
-        metric_name  = "WriteIOPS"
-        period       = 300
-        statistic    = "Average"
-        width        = 12
-        height       = 6
-        title        = "Aurora RDS - Write IOPS"
+        metric_name = "WriteIOPS"
+        period      = 300
+        statistic   = "Average"
+        width       = 12
+        height      = 6
+        title       = "Aurora RDS - Write IOPS"
       }
     ],
-    
+
     # Configuración de alarmas para Aurora RDS
     alarm_config = [
       # CPU Utilization - Warning
@@ -175,7 +183,9 @@ module "observability" {
         severity            = "warning"
         comparison          = "GreaterThanOrEqualToThreshold"
         description         = "Aurora RDS CPU utilization is above 75%"
-        actions             = ["arn:aws:sns:us-east-1:123456789012:alert-warning"]
+        alarm_actions             = ["arn:aws:sns:us-east-1:123456789012:alert-critical"]
+        insufficient_data_actions = ["arn:aws:sns:us-east-1:123456789012:alert-critical"]
+        ok_actions                = ["arn:aws:sns:us-east-1:123456789012:alert-critical"]
         evaluation_periods  = 3
         period              = 300
         statistic           = "Average"
@@ -189,7 +199,9 @@ module "observability" {
         severity            = "critical"
         comparison          = "GreaterThanOrEqualToThreshold"
         description         = "Aurora RDS CPU utilization is above 90%"
-        actions             = ["arn:aws:sns:us-east-1:123456789012:alert-critical"]
+        alarm_actions             = ["arn:aws:sns:us-east-1:123456789012:alert-critical"]
+        insufficient_data_actions = ["arn:aws:sns:us-east-1:123456789012:alert-critical"]
+        ok_actions                = ["arn:aws:sns:us-east-1:123456789012:alert-critical"]
         evaluation_periods  = 3
         period              = 300
         statistic           = "Average"
@@ -199,11 +211,13 @@ module "observability" {
       # Freeable Memory - Warning
       {
         metric_name         = "FreeableMemory"
-        threshold           = 2000000000  # 2 GB en bytes
+        threshold           = 2000000000 # 2 GB en bytes
         severity            = "warning"
         comparison          = "LessThanOrEqualToThreshold"
         description         = "Aurora RDS Freeable Memory is below 2GB"
-        actions             = ["arn:aws:sns:us-east-1:123456789012:alert-warning"]
+        alarm_actions             = ["arn:aws:sns:us-east-1:123456789012:alert-critical"]
+        insufficient_data_actions = ["arn:aws:sns:us-east-1:123456789012:alert-critical"]
+        ok_actions                = ["arn:aws:sns:us-east-1:123456789012:alert-critical"]
         evaluation_periods  = 3
         period              = 300
         statistic           = "Average"
@@ -212,26 +226,30 @@ module "observability" {
       },
       # Freeable Memory - Critical
       {
-        metric_name         = "FreeableMemory"
-        threshold           = 1000000000  # 1 GB en bytes
-        severity            = "critical"
-        comparison          = "LessThanOrEqualToThreshold"
-        description         = "Aurora RDS Freeable Memory is below 1GB"
-        actions             = ["arn:aws:sns:us-east-1:123456789012:alert-critical"]
-        evaluation_periods  = 3
-        period              = 300
-        statistic           = "Average"
-        datapoints_to_alarm = 2
-        treat_missing_data  = "missing"
+        metric_name               = "FreeableMemory"
+        threshold                 = 1000000000 # 1 GB en bytes
+        severity                  = "critical"
+        comparison                = "LessThanOrEqualToThreshold"
+        description               = "Aurora RDS Freeable Memory is below 1GB"
+        alarm_actions             = ["arn:aws:sns:us-east-1:123456789012:alert-critical"]
+        insufficient_data_actions = ["arn:aws:sns:us-east-1:123456789012:alert-critical"]
+        ok_actions                = ["arn:aws:sns:us-east-1:123456789012:alert-critical"]
+        evaluation_periods        = 3
+        period                    = 300
+        statistic                 = "Average"
+        datapoints_to_alarm       = 2
+        treat_missing_data        = "missing"
       },
       # Database Connections - Warning
       {
         metric_name         = "DatabaseConnections"
-        threshold           = 450  # Ajusta según los límites de tu instancia
+        threshold           = 450 # Ajusta según los límites de tu instancia
         severity            = "warning"
         comparison          = "GreaterThanOrEqualToThreshold"
         description         = "Aurora RDS Database Connections are above 450"
-        actions             = ["arn:aws:sns:us-east-1:123456789012:alert-warning"]
+        alarm_actions             = ["arn:aws:sns:us-east-1:123456789012:alert-critical"]
+        insufficient_data_actions = ["arn:aws:sns:us-east-1:123456789012:alert-critical"]
+        ok_actions                = ["arn:aws:sns:us-east-1:123456789012:alert-critical"]
         evaluation_periods  = 3
         period              = 300
         statistic           = "Average"
@@ -241,11 +259,13 @@ module "observability" {
       # Database Connections - Critical
       {
         metric_name         = "DatabaseConnections"
-        threshold           = 500  # Ajusta según los límites de tu instancia
+        threshold           = 500 # Ajusta según los límites de tu instancia
         severity            = "critical"
         comparison          = "GreaterThanOrEqualToThreshold"
         description         = "Aurora RDS Database Connections are above 500"
-        actions             = ["arn:aws:sns:us-east-1:123456789012:alert-critical"]
+        alarm_actions             = ["arn:aws:sns:us-east-1:123456789012:alert-critical"]
+        insufficient_data_actions = ["arn:aws:sns:us-east-1:123456789012:alert-critical"]
+        ok_actions                = ["arn:aws:sns:us-east-1:123456789012:alert-critical"]
         evaluation_periods  = 3
         period              = 300
         statistic           = "Average"
