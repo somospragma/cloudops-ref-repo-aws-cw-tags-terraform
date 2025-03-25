@@ -1,4 +1,9 @@
 ###########################################################
+# Data Obtiene la región actual
+###########################################################
+data "aws_region" "current" {}
+
+###########################################################
 # Data Obtiene Instancias EC2 segun el Tag
 ###########################################################
 data "aws_instances" "ec2_tagged" {
@@ -148,4 +153,17 @@ data "aws_resourcegroupstaggingapi_resources" "ecs_services_filtered" {
     values = [try(var.ecs != null ? var.ecs.tag_value : var.ecs_insights.tag_value, "true")]
   }
   resource_type_filters = ["ecs:service"]
+}
+
+##########################################################
+# Data Obtiene Web ACLs de WAF segun el Tag
+##########################################################
+data "aws_resourcegroupstaggingapi_resources" "waf_filtered" {
+  count = var.waf != null ? 1 : 0
+  
+  tag_filter {
+    key    = try(var.waf.tag_key, "EnableObservability")
+    values = [try(var.waf.tag_value, "true")]
+  }
+  resource_type_filters = ["wafv2:webacl"]
 }

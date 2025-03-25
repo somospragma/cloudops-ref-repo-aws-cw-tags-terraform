@@ -595,3 +595,58 @@ variable "ecs_insights" {
 
   default = null
 }
+
+
+###########################################################
+# Variables WAF
+###########################################################
+variable "waf" {
+  description = "Configuración para dashboards y alarmas de AWS WAF"
+  type = object({
+    functionality    = optional(string, "waf")
+    create_dashboard = optional(bool, false)
+    create_alarms    = optional(bool, false)
+    tag_key          = optional(string, "EnableObservability")
+    tag_value        = optional(string, "true")
+    
+    # Configuración para los widgets del dashboard
+    dashboard_config = optional(list(object({
+      metric_name  = string
+      period       = optional(number, 300)
+      statistic    = optional(string, "Average")
+      width        = optional(number, 12)
+      height       = optional(number, 6)
+      title        = optional(string)
+    })), [])
+    
+    # Configuración para las alarmas
+    alarm_config = optional(list(object({
+      metric_name               = string
+      threshold                 = number
+      severity                  = optional(string, "warning")
+      comparison                = optional(string, "GreaterThanOrEqualToThreshold")
+      description               = optional(string)
+      actions                   = optional(list(string), [])
+      alarm_actions             = optional(list(string), [])
+      insufficient_data_actions = optional(list(string), [])
+      ok_actions                = optional(list(string), [])
+      evaluation_periods        = optional(number, 2)
+      period                    = optional(number, 300)
+      statistic                 = optional(string, "Average")
+      datapoints_to_alarm       = optional(number, 2)
+      treat_missing_data        = optional(string, "missing")
+    })), [])
+  })
+  
+  validation {
+    condition     = (!try(var.waf.create_alarms, false) || length(try(var.waf.alarm_config, [])) > 0)
+    error_message = "Si 'create_alarms' es 'true', debes proporcionar 'alarm_config' con al menos una configuración de alarma."
+  }
+  
+  validation {
+    condition     = (!try(var.waf.create_dashboard, false) || length(try(var.waf.dashboard_config, [])) > 0)
+    error_message = "Si 'create_dashboard' es 'true', debes proporcionar 'dashboard_config' con al menos una métrica para visualizar."
+  }
+
+  default = null
+}

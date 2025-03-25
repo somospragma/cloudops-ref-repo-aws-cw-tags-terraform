@@ -92,6 +92,18 @@ locals {
       cluster_name = element(split("/", service.resource_arn), length(split("/", service.resource_arn)) - 2)
     }
   ] : []
-}
 
+###########################################################
+# Filtros WAF
+###########################################################
+waf_webacls_filtered = var.waf != null ? [
+  for webacl in try(data.aws_resourcegroupstaggingapi_resources.waf_filtered[0].resource_tag_mapping_list, []) :
+  {
+    name = element(split("/", webacl.resource_arn), length(split("/", webacl.resource_arn)) - 1)
+    id   = element(split("/", webacl.resource_arn), length(split("/", webacl.resource_arn)) - 1)
+    arn  = webacl.resource_arn
+    scope = contains(split(":", webacl.resource_arn), "regional") ? "REGIONAL" : "CLOUDFRONT"
+  }
+] : []
+}
 

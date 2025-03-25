@@ -410,9 +410,60 @@ locals {
     } 
   ] : []
 
-  ###########################################################
-  # Widgets Consoliddos
-  ###########################################################
+###########################################################
+# Sección Seguridad
+###########################################################
+security_section_header = var.waf != null && try(var.waf.create_dashboard, false) && length(local.waf_webacls_filtered) > 0 ? [
+  {
+    "type"       = "text",
+    "width"      = 24,
+    "height"     = 1,
+    "properties" = { "markdown" = "## **Sección de Seguridad**" }
+  }
+] : []
+
+###########################################################
+# Dasboard Header - Widget CloudWatch WAF
+###########################################################
+waf_section_header = var.waf != null && try(var.waf.create_dashboard, false) && length(local.waf_webacls_filtered) > 0 && length(try(var.waf.dashboard_config, [])) > 0 ? [
+  {
+    "type"       = "text",
+    "width"      = 24,
+    "height"     = 1,
+    "properties" = { "markdown" = "### [**AWS WAF**](https://console.aws.amazon.com/wafv2/homev2)" }
+  }
+] : []
+
+waf_metric_widgets = var.waf != null && try(var.waf.create_dashboard, false) && length(local.waf_webacls_filtered) > 0 && length(try(var.waf.dashboard_config, [])) > 0 ? [
+  for config in var.waf.dashboard_config : {
+    "type"   = "metric",
+    "width"  = try(config.width, 12),
+    "height" = try(config.height, 6),
+    "properties" = merge(
+      local.common_widget_properties,
+      {
+        "title"  = try(config.title, "${config.metric_name} WAF"),
+        "period" = try(config.period, 300),
+        "metrics" = flatten([
+          for webacl in local.waf_webacls_filtered : [
+            [
+              webacl.scope == "REGIONAL" ? "AWS/WAFV2" : "AWS/CloudFront",
+              config.metric_name,
+              "WebACL",
+              webacl.name,
+              "Region",
+              webacl.scope == "REGIONAL" ? data.aws_region.current.name : "Global",
+              "Rule",
+              "ALL"
+            ]
+          ]
+        ]),
+        "statistic" = try(config.statistic, "Sum")
+      }
+    )
+  }
+] : []
+
 ###########################################################
 # Widgets Consolidados
 ###########################################################
@@ -456,6 +507,11 @@ locals {
     local.alb_section_header,
     local.alb_metric_widgets,
     local.nlb_section_header,
-    local.nlb_metric_widgets
+    local.nlb_metric_widgets,
+
+    # Security section
+    local.security_section_header,
+    local.waf_section_header,
+    local.waf_metric_widgets
   )
 }

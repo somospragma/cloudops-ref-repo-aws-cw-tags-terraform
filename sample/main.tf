@@ -274,6 +274,57 @@ module "observability" {
       }
     ]
   }
+
+    waf = {
+    create_dashboard = true
+    create_alarms    = true
+    
+    dashboard_config = [
+      {
+        metric_name = "AllowedRequests"
+        statistic   = "Sum"
+        title       = "Solicitudes Permitidas"
+      },
+      {
+        metric_name = "BlockedRequests"
+        statistic   = "Sum"
+        title       = "Solicitudes Bloqueadas"
+      },
+      {
+        metric_name = "CountedRequests"
+        statistic   = "Sum"
+        title       = "Solicitudes Contadas"
+      },
+      {
+        metric_name = "RequestsWithValidAWSManagedRulesACFP"
+        statistic   = "Sum"
+        title       = "ACFP (Protección contra Fraude de Creación de Cuentas)"
+      }
+    ]
+    
+    alarm_config = [
+      {
+        metric_name   = "BlockedRequests"
+        threshold     = 100
+        severity      = "warning"
+        comparison    = "GreaterThanThreshold"
+        description   = "Número alto de solicitudes bloqueadas"
+        alarm_actions = ["arn:aws:sns:us-east-1:123456789012:alert-warning"]
+        statistic     = "Sum"
+        period        = 300
+      },
+      {
+        metric_name   = "AllowedRequests"
+        threshold     = 1000
+        severity      = "critical"
+        comparison    = "GreaterThanThreshold"
+        description   = "Tráfico excesivo permitido"
+        alarm_actions = ["arn:aws:sns:us-east-1:123456789012:alert-critical"]
+        statistic     = "Sum"
+        period        = 300
+      }
+    ]
+  }
 }
 
 # Cloudfront
@@ -281,11 +332,11 @@ module "observability" {
 # ECS OK
 # Aurora OK
 # WAF Pendinete
-#Textract Pendiente 
-#SQS Pendiente
-#ECR Pendiente
-#S3 OK
-#API GATEWAY OK
+# Textract Pendiente 
+# SQS Pendiente
+# ECR Pendiente
+# S3 OK
+# API GATEWAY OK
 # DynamoDB OK
 # Lambda OK
 # CloudFront Pendiente
