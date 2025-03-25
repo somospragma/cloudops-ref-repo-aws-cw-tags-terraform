@@ -38,7 +38,12 @@ resource "aws_cloudwatch_metric_alarm" "ec2_alarms" {
   threshold           = each.value.threshold
   alarm_description   = each.value.alarm_description
   dimensions          = each.value.dimensions
-  alarm_actions       = each.value.actions
+  
+  # Campos actualizados para notificaciones
+  alarm_actions             = try(each.value.alarm_actions, try(each.value.actions, []))
+  insufficient_data_actions = try(each.value.insufficient_data_actions, [])
+  ok_actions                = try(each.value.ok_actions, [])
+  
   datapoints_to_alarm = each.value.datapoints_to_alarm
   treat_missing_data  = each.value.treat_missing_data
 }
@@ -61,7 +66,12 @@ resource "aws_cloudwatch_metric_alarm" "rds_alarm" {
   threshold           = each.value.threshold
   alarm_description   = each.value.alarm_description
   dimensions          = each.value.dimensions
-  alarm_actions       = each.value.actions
+  
+  # Campos actualizados para notificaciones
+  alarm_actions             = try(each.value.alarm_actions, try(each.value.actions, []))
+  insufficient_data_actions = try(each.value.insufficient_data_actions, [])
+  ok_actions                = try(each.value.ok_actions, [])
+  
   datapoints_to_alarm = each.value.datapoints_to_alarm
   treat_missing_data  = each.value.treat_missing_data
 }
@@ -84,7 +94,12 @@ resource "aws_cloudwatch_metric_alarm" "lambda_alarm" {
   threshold           = each.value.threshold
   alarm_description   = each.value.alarm_description
   dimensions          = each.value.dimensions
-  alarm_actions       = each.value.actions
+  
+  # Campos actualizados para notificaciones
+  alarm_actions             = try(each.value.alarm_actions, try(each.value.actions, []))
+  insufficient_data_actions = try(each.value.insufficient_data_actions, [])
+  ok_actions                = try(each.value.ok_actions, [])
+  
   datapoints_to_alarm = each.value.datapoints_to_alarm
   treat_missing_data  = each.value.treat_missing_data
 }
@@ -107,7 +122,12 @@ resource "aws_cloudwatch_metric_alarm" "alb_alarms" {
   threshold           = each.value.threshold
   alarm_description   = each.value.alarm_description
   dimensions          = each.value.dimensions
-  alarm_actions       = each.value.actions
+  
+  # Campos actualizados para notificaciones
+  alarm_actions             = try(each.value.alarm_actions, try(each.value.actions, []))
+  insufficient_data_actions = try(each.value.insufficient_data_actions, [])
+  ok_actions                = try(each.value.ok_actions, [])
+  
   datapoints_to_alarm = each.value.datapoints_to_alarm
   treat_missing_data  = each.value.treat_missing_data
 }
@@ -130,7 +150,12 @@ resource "aws_cloudwatch_metric_alarm" "nlb_alarm" {
   threshold           = each.value.threshold
   alarm_description   = each.value.alarm_description
   dimensions          = each.value.dimensions
-  alarm_actions       = each.value.actions
+  
+  # Campos actualizados para notificaciones
+  alarm_actions             = try(each.value.alarm_actions, try(each.value.actions, []))
+  insufficient_data_actions = try(each.value.insufficient_data_actions, [])
+  ok_actions                = try(each.value.ok_actions, [])
+  
   datapoints_to_alarm = each.value.datapoints_to_alarm
   treat_missing_data  = each.value.treat_missing_data
 }
@@ -153,7 +178,12 @@ resource "aws_cloudwatch_metric_alarm" "s3_alarm" {
   threshold           = each.value.threshold
   alarm_description   = each.value.alarm_description
   dimensions          = each.value.dimensions
-  alarm_actions       = each.value.actions
+  
+  # Campos actualizados para notificaciones
+  alarm_actions             = try(each.value.alarm_actions, try(each.value.actions, []))
+  insufficient_data_actions = try(each.value.insufficient_data_actions, [])
+  ok_actions                = try(each.value.ok_actions, [])
+  
   datapoints_to_alarm = each.value.datapoints_to_alarm
   treat_missing_data  = each.value.treat_missing_data
 }
@@ -176,7 +206,12 @@ resource "aws_cloudwatch_metric_alarm" "apigateway_alarm" {
   threshold           = each.value.threshold
   alarm_description   = each.value.alarm_description
   dimensions          = each.value.dimensions
-  alarm_actions       = each.value.actions
+  
+  # Campos actualizados para notificaciones
+  alarm_actions             = try(each.value.alarm_actions, try(each.value.actions, []))
+  insufficient_data_actions = try(each.value.insufficient_data_actions, [])
+  ok_actions                = try(each.value.ok_actions, [])
+  
   datapoints_to_alarm = each.value.datapoints_to_alarm
   treat_missing_data  = each.value.treat_missing_data
 }
@@ -199,7 +234,12 @@ resource "aws_cloudwatch_metric_alarm" "dynamodb_alarm" {
   threshold           = each.value.threshold
   alarm_description   = each.value.alarm_description
   dimensions          = each.value.dimensions
-  alarm_actions       = each.value.actions
+  
+  # Campos actualizados para notificaciones
+  alarm_actions             = try(each.value.alarm_actions, try(each.value.actions, []))
+  insufficient_data_actions = try(each.value.insufficient_data_actions, [])
+  ok_actions                = try(each.value.ok_actions, [])
+  
   datapoints_to_alarm = each.value.datapoints_to_alarm
   treat_missing_data  = each.value.treat_missing_data
 }
@@ -212,19 +252,21 @@ resource "aws_cloudwatch_metric_alarm" "ecs_alarm" {
     for alarm in local.ecs_alarms : alarm.alarm_name => alarm
   } : {}
 
-  alarm_name          = each.value.alarm_name
-  comparison_operator = each.value.comparison_operator
-  evaluation_periods  = each.value.evaluation_periods
-  metric_name         = each.value.metric_name
-  namespace           = each.value.namespace
-  period              = each.value.period
-  statistic           = each.value.statistic
-  threshold           = each.value.threshold
-  alarm_description   = each.value.alarm_description
-  dimensions          = each.value.dimensions
-  alarm_actions       = each.value.actions
-  datapoints_to_alarm = each.value.datapoints_to_alarm
-  treat_missing_data  = each.value.treat_missing_data
+  alarm_name                = each.value.alarm_name
+  comparison_operator       = each.value.comparison_operator
+  evaluation_periods        = each.value.evaluation_periods
+  metric_name               = each.value.metric_name
+  namespace                 = each.value.namespace
+  period                    = each.value.period
+  statistic                 = each.value.statistic
+  threshold                 = each.value.threshold
+  alarm_description         = each.value.alarm_description
+  dimensions                = each.value.dimensions
+  alarm_actions             = each.value.alarm_actions
+  insufficient_data_actions = each.value.insufficient_data_actions
+  ok_actions                = each.value.ok_actions
+  datapoints_to_alarm       = each.value.datapoints_to_alarm
+  treat_missing_data        = each.value.treat_missing_data
 }
 
 ###########################################################
@@ -245,7 +287,12 @@ resource "aws_cloudwatch_metric_alarm" "ecs_insights_alarm" {
   threshold           = each.value.threshold
   alarm_description   = each.value.alarm_description
   dimensions          = each.value.dimensions
-  alarm_actions       = each.value.actions
+  
+  # Campos actualizados para notificaciones
+  alarm_actions             = try(each.value.alarm_actions, try(each.value.actions, []))
+  insufficient_data_actions = try(each.value.insufficient_data_actions, [])
+  ok_actions                = try(each.value.ok_actions, [])
+  
   datapoints_to_alarm = each.value.datapoints_to_alarm
   treat_missing_data  = each.value.treat_missing_data
 }

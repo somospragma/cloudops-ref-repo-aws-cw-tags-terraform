@@ -22,9 +22,12 @@ locals {
           dimensions = {
             InstanceId = instance_id
           }
-          actions             = try(alarm.actions, [])
-          datapoints_to_alarm = try(alarm.datapoints_to_alarm, 2)
-          treat_missing_data  = try(alarm.treat_missing_data, "missing")
+          actions                   = try(alarm.actions, [])
+          alarm_actions             = try(alarm.alarm_actions, try(alarm.actions, []))
+          insufficient_data_actions = try(alarm.insufficient_data_actions, [])
+          ok_actions                = try(alarm.ok_actions, [])
+          datapoints_to_alarm       = try(alarm.datapoints_to_alarm, 2)
+          treat_missing_data        = try(alarm.treat_missing_data, "missing")
         }
       ]
     ])
@@ -49,9 +52,12 @@ locals {
           dimensions = {
             DBInstanceIdentifier = id
           }
-          actions             = try(alarm.actions, [])
-          datapoints_to_alarm = try(alarm.datapoints_to_alarm, 2)
-          treat_missing_data  = try(alarm.treat_missing_data, "missing")
+          actions                   = try(alarm.actions, [])
+          alarm_actions             = try(alarm.alarm_actions, try(alarm.actions, []))
+          insufficient_data_actions = try(alarm.insufficient_data_actions, [])
+          ok_actions                = try(alarm.ok_actions, [])
+          datapoints_to_alarm       = try(alarm.datapoints_to_alarm, 2)
+          treat_missing_data        = try(alarm.treat_missing_data, "missing")
         }
       ]
     ])
@@ -76,9 +82,12 @@ locals {
           dimensions = {
             FunctionName = function_name
           }
-          actions             = try(alarm.actions, [])
-          datapoints_to_alarm = try(alarm.datapoints_to_alarm, 2)
-          treat_missing_data  = try(alarm.treat_missing_data, "missing")
+          actions                   = try(alarm.actions, [])
+          alarm_actions             = try(alarm.alarm_actions, try(alarm.actions, []))
+          insufficient_data_actions = try(alarm.insufficient_data_actions, [])
+          ok_actions                = try(alarm.ok_actions, [])
+          datapoints_to_alarm       = try(alarm.datapoints_to_alarm, 2)
+          treat_missing_data        = try(alarm.treat_missing_data, "missing")
         }
       ]
     ])
@@ -103,9 +112,12 @@ locals {
           dimensions = {
             LoadBalancer = alb
           }
-          actions             = try(alarm.actions, [])
-          datapoints_to_alarm = try(alarm.datapoints_to_alarm, 2)
-          treat_missing_data  = try(alarm.treat_missing_data, "missing")
+          actions                   = try(alarm.actions, [])
+          alarm_actions             = try(alarm.alarm_actions, try(alarm.actions, []))
+          insufficient_data_actions = try(alarm.insufficient_data_actions, [])
+          ok_actions                = try(alarm.ok_actions, [])
+          datapoints_to_alarm       = try(alarm.datapoints_to_alarm, 2)
+          treat_missing_data        = try(alarm.treat_missing_data, "missing")
         }
       ]
     ])
@@ -130,9 +142,12 @@ locals {
           dimensions = {
             LoadBalancer = nlb_name
           }
-          actions             = try(alarm.actions, [])
-          datapoints_to_alarm = try(alarm.datapoints_to_alarm, 2)
-          treat_missing_data  = try(alarm.treat_missing_data, "missing")
+          actions                   = try(alarm.actions, [])
+          alarm_actions             = try(alarm.alarm_actions, try(alarm.actions, []))
+          insufficient_data_actions = try(alarm.insufficient_data_actions, [])
+          ok_actions                = try(alarm.ok_actions, [])
+          datapoints_to_alarm       = try(alarm.datapoints_to_alarm, 2)
+          treat_missing_data        = try(alarm.treat_missing_data, "missing")
         }
       ]
     ])
@@ -169,9 +184,12 @@ locals {
               StorageType = try(alarm.storage_type, "Standard")
             }
           )
-          actions             = try(alarm.actions, [])
-          datapoints_to_alarm = try(alarm.datapoints_to_alarm, 2)
-          treat_missing_data  = try(alarm.treat_missing_data, "missing")
+          actions                   = try(alarm.actions, [])
+          alarm_actions             = try(alarm.alarm_actions, try(alarm.actions, []))
+          insufficient_data_actions = try(alarm.insufficient_data_actions, [])
+          ok_actions                = try(alarm.ok_actions, [])
+          datapoints_to_alarm       = try(alarm.datapoints_to_alarm, 2)
+          treat_missing_data        = try(alarm.treat_missing_data, "missing")
         }
       ]
     ])
@@ -196,9 +214,12 @@ locals {
           dimensions = {
             ApiId = api_id
           }
-          actions             = try(alarm.actions, [])
-          datapoints_to_alarm = try(alarm.datapoints_to_alarm, 2)
-          treat_missing_data  = try(alarm.treat_missing_data, "missing")
+          actions                   = try(alarm.actions, [])
+          alarm_actions             = try(alarm.alarm_actions, try(alarm.actions, []))
+          insufficient_data_actions = try(alarm.insufficient_data_actions, [])
+          ok_actions                = try(alarm.ok_actions, [])
+          datapoints_to_alarm       = try(alarm.datapoints_to_alarm, 2)
+          treat_missing_data        = try(alarm.treat_missing_data, "missing")
         }
       ]
     ])
@@ -223,16 +244,17 @@ locals {
           dimensions = {
             TableName = table
           }
-          actions             = try(alarm.actions, [])
-          datapoints_to_alarm = try(alarm.datapoints_to_alarm, 2)
-          treat_missing_data  = try(alarm.treat_missing_data, "missing")
+          actions                   = try(alarm.actions, [])
+          alarm_actions             = try(alarm.alarm_actions, try(alarm.actions, []))
+          insufficient_data_actions = try(alarm.insufficient_data_actions, [])
+          ok_actions                = try(alarm.ok_actions, [])
+          datapoints_to_alarm       = try(alarm.datapoints_to_alarm, 2)
+          treat_missing_data        = try(alarm.treat_missing_data, "missing")
         }
       ]
     ])
   ) : []
-  ###########################################################
-  # Alarmas - CloudWatch ECS Estándar
-  ###########################################################
+
   ###########################################################
   # Alarmas - CloudWatch ECS Estándar
   ###########################################################
@@ -252,13 +274,16 @@ locals {
         dimensions = {
           "${try(alarm.dimension_name, "ClusterName")}" = alarm.dimension_value
         }
-        actions             = try(alarm.actions, [])
-        datapoints_to_alarm = try(alarm.datapoints_to_alarm, 2)
-        treat_missing_data  = try(alarm.treat_missing_data, "missing")
+        actions                   = try(alarm.actions, [])
+        alarm_actions             = try(alarm.alarm_actions, try(alarm.actions, []))
+        insufficient_data_actions = try(alarm.insufficient_data_actions, [])
+        ok_actions                = try(alarm.ok_actions, [])
+        datapoints_to_alarm       = try(alarm.datapoints_to_alarm, 2)
+        treat_missing_data        = try(alarm.treat_missing_data, "missing")
       }
     ]),
 
-    # Alarmas auto-generadas para todos los servicios etiquetados basados en plantillas
+    # Alarmas para todos los servicios etiquetados
     flatten([
       for service in local.ecs_services_filtered : [
         for template in try(var.ecs.service_alarm_templates, []) : {
@@ -275,9 +300,12 @@ locals {
             "ServiceName" = service.service_name
             "ClusterName" = service.cluster_name
           }
-          actions             = try(template.actions, [])
-          datapoints_to_alarm = try(template.datapoints_to_alarm, 2)
-          treat_missing_data  = try(template.treat_missing_data, "missing")
+          actions                   = try(template.actions, [])
+          alarm_actions             = try(template.alarm_actions, try(template.actions, []))
+          insufficient_data_actions = try(template.insufficient_data_actions, [])
+          ok_actions                = try(template.ok_actions, [])
+          datapoints_to_alarm       = try(template.datapoints_to_alarm, 2)
+          treat_missing_data        = try(template.treat_missing_data, "missing")
         }
       ]
     ])
@@ -309,9 +337,12 @@ locals {
             "${try(alarm.dimension_name, "ClusterName")}" = alarm.dimension_value
           }
         )
-        actions             = try(alarm.actions, [])
-        datapoints_to_alarm = try(alarm.datapoints_to_alarm, 2)
-        treat_missing_data  = try(alarm.treat_missing_data, "missing")
+        actions                   = try(alarm.actions, [])
+        alarm_actions             = try(alarm.alarm_actions, try(alarm.actions, []))
+        insufficient_data_actions = try(alarm.insufficient_data_actions, [])
+        ok_actions                = try(alarm.ok_actions, [])
+        datapoints_to_alarm       = try(alarm.datapoints_to_alarm, 2)
+        treat_missing_data        = try(alarm.treat_missing_data, "missing")
       }
     ]),
 
@@ -332,13 +363,14 @@ locals {
             "ServiceName" = service.service_name
             "ClusterName" = service.cluster_name
           }
-          actions             = try(template.actions, [])
-          datapoints_to_alarm = try(template.datapoints_to_alarm, 2)
-          treat_missing_data  = try(template.treat_missing_data, "missing")
+          actions                   = try(template.actions, [])
+          alarm_actions             = try(template.alarm_actions, try(template.actions, []))
+          insufficient_data_actions = try(template.insufficient_data_actions, [])
+          ok_actions                = try(template.ok_actions, [])
+          datapoints_to_alarm       = try(template.datapoints_to_alarm, 2)
+          treat_missing_data        = try(template.treat_missing_data, "missing")
         }
       ]
     ])
   ) : []
 }
-
-
