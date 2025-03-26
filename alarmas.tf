@@ -375,36 +375,38 @@ locals {
   ) : []
 
   ###########################################################
-  # Alarmas - CloudWatch WAF
-  ###########################################################
-  waf_alarms = var.waf != null && try(var.waf.create_alarms, false) && length(local.waf_webacls_filtered) > 0 ? concat(
-    flatten([
-      for webacl in local.waf_webacls_filtered : [
-        for alarm in try(var.waf.alarm_config, []) : {
-          alarm_name          = "waf-${alarm.metric_name}-${try(alarm.severity, "warning")}-${webacl.name}"
-          metric_name         = alarm.metric_name
-          threshold           = alarm.threshold
-          webacl_name         = webacl.name
-          webacl_id           = webacl.id
-          scope               = webacl.scope
-          comparison_operator = try(alarm.comparison, "GreaterThanOrEqualToThreshold")
-          evaluation_periods  = try(alarm.evaluation_periods, 2)
-          period              = try(alarm.period, 300)
-          statistic           = try(alarm.statistic, "Average")
-          alarm_description   = try(alarm.description, "Alarma ${try(alarm.severity, "warning")} para ${alarm.metric_name} en WAF WebACL ${webacl.name}")
-          dimensions = {
-            WebACL = webacl.name
-            Region = webacl.scope == "REGIONAL" ? data.aws_region.current.name : "Global"
-            Rule   = "ALL"
-          }
-          actions                   = try(alarm.actions, [])
-          alarm_actions             = try(alarm.alarm_actions, try(alarm.actions, []))
-          insufficient_data_actions = try(alarm.insufficient_data_actions, [])
-          ok_actions                = try(alarm.ok_actions, [])
-          datapoints_to_alarm       = try(alarm.datapoints_to_alarm, 2)
-          treat_missing_data        = try(alarm.treat_missing_data, "missing")
+# Alarmas - CloudWatch WAF
+###########################################################
+waf_alarms = var.waf != null && try(var.waf.create_alarms, false) && length(local.waf_webacls_filtered) > 0 ? concat(
+  flatten([
+    for webacl in local.waf_webacls_filtered : [
+      for alarm in try(var.waf.alarm_config, []) : {
+        alarm_name          = "waf-${alarm.metric_name}-${try(alarm.severity, "warning")}-${webacl.name}"
+        metric_name         = alarm.metric_name
+        threshold           = alarm.threshold
+        webacl_name         = webacl.name
+        webacl_id           = webacl.id
+        scope               = webacl.scope
+        region              = webacl.region
+        comparison_operator = try(alarm.comparison, "GreaterThanOrEqualToThreshold")
+        evaluation_periods  = try(alarm.evaluation_periods, 2)
+        period              = try(alarm.period, 300)
+        statistic           = try(alarm.statistic, "Sum")
+        alarm_description   = try(alarm.description, "Alarma ${try(alarm.severity, "warning")} para ${alarm.metric_name} en WAF WebACL ${webacl.name}")
+        dimensions = {
+          WebACL = webacl.name
+          Region = webacl.scope == "REGIONAL" ? webacl.region : "Global"
+          Rule   = "ALL"
         }
-      ]
-    ])
-  ) : []
+        actions                   = try(alarm.actions, [])
+        alarm_actions             = try(alarm.alarm_actions, try(alarm.actions, []))
+        insufficient_data_actions = try(alarm.insufficient_data_actions, [])
+        ok_actions                = try(alarm.ok_actions, [])
+        datapoints_to_alarm       = try(alarm.datapoints_to_alarm, 2)
+        treat_missing_data        = try(alarm.treat_missing_data, "missing")
+        namespace                 = webacl.scope == "REGIONAL" ? "AWS/WAFV2" : "AWS/CloudFront"
+      }
+    ]
+  ])
+) : []
 }

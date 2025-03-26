@@ -606,14 +606,20 @@ variable "waf" {
     functionality    = optional(string, "waf")
     create_dashboard = optional(bool, false)
     create_alarms    = optional(bool, false)
-    tag_key          = optional(string, "EnableObservability")
-    tag_value        = optional(string, "true")
+    
+    # Lista de Web ACLs a monitorear
+    web_acls = list(object({
+      name  = string               # Nombre de la Web ACL
+      id    = optional(string)     # ID de la Web ACL (si se omite, se usará el nombre)
+      scope = string               # "REGIONAL" o "CLOUDFRONT"
+      region = optional(string)    # Región (requerido solo para REGIONAL)
+    }))
     
     # Configuración para los widgets del dashboard
     dashboard_config = optional(list(object({
       metric_name  = string
       period       = optional(number, 300)
-      statistic    = optional(string, "Average")
+      statistic    = optional(string, "Sum")
       width        = optional(number, 12)
       height       = optional(number, 6)
       title        = optional(string)
@@ -632,7 +638,7 @@ variable "waf" {
       ok_actions                = optional(list(string), [])
       evaluation_periods        = optional(number, 2)
       period                    = optional(number, 300)
-      statistic                 = optional(string, "Average")
+      statistic                 = optional(string, "Sum")
       datapoints_to_alarm       = optional(number, 2)
       treat_missing_data        = optional(string, "missing")
     })), [])
@@ -646,6 +652,16 @@ variable "waf" {
   validation {
     condition     = (!try(var.waf.create_dashboard, false) || length(try(var.waf.dashboard_config, [])) > 0)
     error_message = "Si 'create_dashboard' es 'true', debes proporcionar 'dashboard_config' con al menos una métrica para visualizar."
+  }
+
+  validation {
+    condition     = var.waf == null || length(try(var.waf.web_acls, [])) > 0
+    error_message = "Debes proporcionar al menos una Web ACL para monitorear."
+  }
+  
+  validation {
+    condition     = var.waf == null || length([for acl in try(var.waf.web_acls, []) : acl if acl.scope == "REGIONAL" && try(acl.region, "") == ""]) == 0
+    error_message = "Para Web ACLs con scope 'REGIONAL', debes especificar la región."
   }
 
   default = null

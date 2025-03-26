@@ -96,14 +96,20 @@ locals {
 ###########################################################
 # Filtros WAF
 ###########################################################
+###########################################################
+# Filtros WAF
+###########################################################
 waf_webacls_filtered = var.waf != null ? [
-  for webacl in try(data.aws_resourcegroupstaggingapi_resources.waf_filtered[0].resource_tag_mapping_list, []) :
-  {
-    name = element(split("/", webacl.resource_arn), length(split("/", webacl.resource_arn)) - 1)
-    id   = element(split("/", webacl.resource_arn), length(split("/", webacl.resource_arn)) - 1)
-    arn  = webacl.resource_arn
-    scope = contains(split(":", webacl.resource_arn), "regional") ? "REGIONAL" : "CLOUDFRONT"
+  for webacl in var.waf.web_acls : {
+    name   = webacl.name
+    id     = try(webacl.id, webacl.name)
+    scope  = webacl.scope
+    region = webacl.scope == "REGIONAL" ? try(webacl.region, data.aws_region.current.name) : "us-east-1"
+    arn    = webacl.scope == "REGIONAL" ? (
+      "arn:aws:wafv2:${try(webacl.region, data.aws_region.current.name)}:${data.aws_caller_identity.current.account_id}:regional/webacl/${webacl.name}/${try(webacl.id, webacl.name)}"
+    ) : (
+      "arn:aws:wafv2:us-east-1:${data.aws_caller_identity.current.account_id}:global/webacl/${webacl.name}/${try(webacl.id, webacl.name)}"
+    )
   }
 ] : []
 }
-

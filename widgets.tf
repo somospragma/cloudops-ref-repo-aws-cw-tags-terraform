@@ -356,13 +356,13 @@ locals {
       "properties" = merge(
         local.common_widget_properties,
         {
-          "title"   = try(config.title, "${config.metric_name} ECS"),
-          "period"  = try(config.period, 300),
+          "title"  = try(config.title, "${config.metric_name} ECS"),
+          "period" = try(config.period, 300),
           "metrics" = try(config.dimension_name, "ClusterName") == "ClusterName" ? [
             for cluster in local.ecs_clusters_filtered : [
               "AWS/ECS", config.metric_name, "ClusterName", cluster
             ]
-          ] : try(config.dimension_name, "ClusterName") == "ServiceName" ? [
+            ] : try(config.dimension_name, "ClusterName") == "ServiceName" ? [
             for service in local.ecs_services_filtered : [
               "AWS/ECS", config.metric_name, "ClusterName", service.cluster_name, "ServiceName", service.service_name
             ]
@@ -370,17 +370,17 @@ locals {
           "statistic" = try(config.statistic, "Average")
         }
       )
-    } 
+    }
   ] : []
 
-###########################################################
-# Dasboard Header - Widget CloudWatch ECS Container Insights
-###########################################################
+  ###########################################################
+  # Dasboard Header - Widget CloudWatch ECS Container Insights
+  ###########################################################
   ecs_insights_section_header = var.ecs_insights != null && try(var.ecs_insights.create_dashboard, false) && (length(local.ecs_clusters_filtered) > 0 || length(local.ecs_services_filtered) > 0) && length(try(var.ecs_insights.dashboard_config, [])) > 0 ? [
     {
-      "type"   = "text",
-      "width"  = 24,
-      "height" = 1,
+      "type"       = "text",
+      "width"      = 24,
+      "height"     = 1,
       "properties" = { "markdown" = "### [**ECS Container Insights**](https://console.aws.amazon.com/cloudwatch/home?#container-insights:)" }
     }
   ] : []
@@ -393,13 +393,13 @@ locals {
       "properties" = merge(
         local.common_widget_properties,
         {
-          "title"   = try(config.title, "${config.metric_name} Container Insights"),
-          "period"  = try(config.period, 300),
+          "title"  = try(config.title, "${config.metric_name} Container Insights"),
+          "period" = try(config.period, 300),
           "metrics" = try(config.dimension_name, "ClusterName") == "ClusterName" ? [
             for cluster in local.ecs_clusters_filtered : [
               "ECS/ContainerInsights", config.metric_name, "ClusterName", cluster
             ]
-          ] : try(config.dimension_name, "ClusterName") == "ServiceName" ? [
+            ] : try(config.dimension_name, "ClusterName") == "ServiceName" ? [
             for service in local.ecs_services_filtered : [
               "ECS/ContainerInsights", config.metric_name, "ClusterName", service.cluster_name, "ServiceName", service.service_name
             ]
@@ -407,74 +407,71 @@ locals {
           "statistic" = try(config.statistic, "Average")
         }
       )
-    } 
+    }
   ] : []
 
-###########################################################
-# Sección Seguridad
-###########################################################
-security_section_header = var.waf != null && try(var.waf.create_dashboard, false) && length(local.waf_webacls_filtered) > 0 ? [
-  {
-    "type"       = "text",
-    "width"      = 24,
-    "height"     = 1,
-    "properties" = { "markdown" = "## **Sección de Seguridad**" }
-  }
-] : []
+  ###########################################################
+  # Sección Seguridad
+  ###########################################################
+  security_section_header = var.waf != null && try(var.waf.create_dashboard, false) && length(local.waf_webacls_filtered) > 0 ? [
+    {
+      "type"       = "text",
+      "width"      = 24,
+      "height"     = 1,
+      "properties" = { "markdown" = "## **Sección de Seguridad**" }
+    }
+  ] : []
 
-###########################################################
-# Dasboard Header - Widget CloudWatch WAF
-###########################################################
-waf_section_header = var.waf != null && try(var.waf.create_dashboard, false) && length(local.waf_webacls_filtered) > 0 && length(try(var.waf.dashboard_config, [])) > 0 ? [
-  {
-    "type"       = "text",
-    "width"      = 24,
-    "height"     = 1,
-    "properties" = { "markdown" = "### [**AWS WAF**](https://console.aws.amazon.com/wafv2/homev2)" }
-  }
-] : []
+  ###########################################################
+  # Dasboard Header - Widget CloudWatch WAF
+  ###########################################################
+  waf_section_header = var.waf != null && try(var.waf.create_dashboard, false) && length(local.waf_webacls_filtered) > 0 && length(try(var.waf.dashboard_config, [])) > 0 ? [
+    {
+      "type"       = "text",
+      "width"      = 24,
+      "height"     = 1,
+      "properties" = { "markdown" = "### [**AWS WAF**](https://console.aws.amazon.com/wafv2/homev2)" }
+    }
+  ] : []
 
-waf_metric_widgets = var.waf != null && try(var.waf.create_dashboard, false) && length(local.waf_webacls_filtered) > 0 && length(try(var.waf.dashboard_config, [])) > 0 ? [
-  for config in var.waf.dashboard_config : {
-    "type"   = "metric",
-    "width"  = try(config.width, 12),
-    "height" = try(config.height, 6),
-    "properties" = merge(
-      local.common_widget_properties,
-      {
-        "title"  = try(config.title, "${config.metric_name} WAF"),
-        "period" = try(config.period, 300),
-        "metrics" = flatten([
-          for webacl in local.waf_webacls_filtered : [
-            [
-              webacl.scope == "REGIONAL" ? "AWS/WAFV2" : "AWS/CloudFront",
+  waf_metric_widgets = var.waf != null && try(var.waf.create_dashboard, false) && length(local.waf_webacls_filtered) > 0 && length(try(var.waf.dashboard_config, [])) > 0 ? [
+    for config in var.waf.dashboard_config : {
+      "type"   = "metric",
+      "width"  = try(config.width, 12),
+      "height" = try(config.height, 6),
+      "properties" = merge(
+        local.common_widget_properties,
+        {
+          "title"  = try(config.title, "${config.metric_name} WAF"),
+          "period" = try(config.period, 300),
+          "metrics" = [
+            for webacl in local.waf_webacls_filtered : [
+              webacl.scope == "REGIONAL" ? "AWS/WAFV2" : "AWS/WAF",
               config.metric_name,
               "WebACL",
               webacl.name,
               "Region",
-              webacl.scope == "REGIONAL" ? data.aws_region.current.name : "Global",
+              webacl.scope == "REGIONAL" ? webacl.region : "Global",
               "Rule",
               "ALL"
             ]
-          ]
-        ]),
-        "statistic" = try(config.statistic, "Sum")
-      }
-    )
-  }
-] : []
-
-###########################################################
-# Widgets Consolidados
-###########################################################
+          ],
+          "statistic" = try(config.statistic, "Sum")
+        }
+      )
+    }
+  ] : []
+  ###########################################################
+  # Widgets Consolidados
+  ###########################################################
   all_widgets = concat(
     local.dashboard_header,
-    
+
     # Compute section
     local.compute_section_header,
     local.ec2_section_header,
     local.ec2_metric_widgets,
-    
+
     # Container section
     local.container_section_header,
     local.ecs_insights_section_header,
@@ -482,26 +479,26 @@ waf_metric_widgets = var.waf != null && try(var.waf.create_dashboard, false) && 
     local.ecs_section_header,
     local.ecs_metric_widgets,
 
-    
+
     # Serverless section
     local.serverless_section_header,
     local.lambda_section_header,
     local.lambda_metric_widgets,
     local.apigateway_section_header,
     local.apigateway_metric_widgets,
-    
+
     # Database section
     local.database_section_header,
     local.rds_section_header,
     local.rds_metric_widgets,
     local.dynamodb_section_header,
     local.dynamodb_metric_widgets,
-    
+
     # Storage section
     local.storage_section_header,
     local.s3_section_header,
     local.s3_metric_widgets,
-    
+
     # Networking section
     local.networking_section_header,
     local.alb_section_header,
