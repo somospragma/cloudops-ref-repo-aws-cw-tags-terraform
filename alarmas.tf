@@ -374,7 +374,7 @@ locals {
     ])
   ) : []
 
-  ###########################################################
+###########################################################
 # Alarmas - CloudWatch WAF
 ###########################################################
 waf_alarms = var.waf != null && try(var.waf.create_alarms, false) && length(local.waf_webacls_filtered) > 0 ? concat(
@@ -393,9 +393,12 @@ waf_alarms = var.waf != null && try(var.waf.create_alarms, false) && length(loca
         period              = try(alarm.period, 300)
         statistic           = try(alarm.statistic, "Sum")
         alarm_description   = try(alarm.description, "Alarma ${try(alarm.severity, "warning")} para ${alarm.metric_name} en WAF WebACL ${webacl.name}")
-        dimensions = {
+        dimensions = webacl.scope == "REGIONAL" ? {
           WebACL = webacl.name
-          Region = webacl.scope == "REGIONAL" ? webacl.region : "Global"
+          Region = webacl.region
+          Rule   = "ALL"
+        } : {
+          WebACL = webacl.name
           Rule   = "ALL"
         }
         actions                   = try(alarm.actions, [])
@@ -404,7 +407,7 @@ waf_alarms = var.waf != null && try(var.waf.create_alarms, false) && length(loca
         ok_actions                = try(alarm.ok_actions, [])
         datapoints_to_alarm       = try(alarm.datapoints_to_alarm, 2)
         treat_missing_data        = try(alarm.treat_missing_data, "missing")
-        namespace                 = webacl.scope == "REGIONAL" ? "AWS/WAFV2" : "AWS/CloudFront"
+        namespace                 = "AWS/WAFV2"  // Siempre usamos AWS/WAFV2
       }
     ]
   ])

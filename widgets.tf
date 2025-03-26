@@ -439,26 +439,37 @@ locals {
       "type"   = "metric",
       "width"  = try(config.width, 12),
       "height" = try(config.height, 6),
-      "properties" = merge(
-        local.common_widget_properties,
-        {
-          "title"  = try(config.title, "${config.metric_name} WAF"),
-          "period" = try(config.period, 300),
-          "metrics" = [
-            for webacl in local.waf_webacls_filtered : [
-              webacl.scope == "REGIONAL" ? "AWS/WAFV2" : "AWS/WAF",
+      "properties" = {
+        "title"   = try(config.title, "${config.metric_name} WAF"),
+        "period"  = try(config.period, 300),
+        "view"    = "timeSeries",
+        "stacked" = false,
+        "region"  = "us-east-1",
+        "metrics" = [
+          for webacl in local.waf_webacls_filtered : (
+            webacl.scope == "REGIONAL" ?
+            [
+              "AWS/WAFV2",
               config.metric_name,
               "WebACL",
               webacl.name,
               "Region",
-              webacl.scope == "REGIONAL" ? webacl.region : "Global",
+              webacl.region,
+              "Rule",
+              "ALL"
+            ] :
+            [
+              "AWS/WAFV2",
+              config.metric_name,
+              "WebACL",
+              webacl.name,
               "Rule",
               "ALL"
             ]
-          ],
-          "statistic" = try(config.statistic, "Sum")
-        }
-      )
+          )
+        ],
+        "statistic" = try(config.statistic, "Sum")
+      }
     }
   ] : []
   ###########################################################

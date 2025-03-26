@@ -282,18 +282,19 @@ module "observability" {
     # Especificar explícitamente las Web ACLs a monitorear
     web_acls = [
       {
-        name  = "webacl-waf"
-        id    = "0760ea5b-3247-461f-a145-78ba31c390e6"
-        scope = "CLOUDFRONT"
+        name  = "waf-regional"
+        id    = "39a849f8-213b-477f-8e1f-00f944fe4c01"
+        scope = "REGIONAL"
+        region = "us-east-1"
         # No se necesita 'region' para scope CLOUDFRONT
       },
-      # Si tuvieras una Web ACL regional, la especificarías así:
-      # {
-      #   name   = "my-regional-webacl"
-      #   id     = "abcdef12-3456-7890-abcd-ef1234567890"
-      #   scope  = "REGIONAL"
-      #   region = "us-east-1"
-      # }
+      # Ejemplo WAF Regional
+      {
+        name   = "waf-global"
+        id     = "27cfea59-8029-414e-9778-a1249d34565f"
+        scope  = "GLOBAL"
+        #region = "us-east-1"
+      }
     ]
     
     # Configuración del dashboard para WAF
@@ -307,11 +308,6 @@ module "observability" {
         metric_name = "BlockedRequests",
         statistic   = "Sum",
         title       = "Solicitudes Bloqueadas"
-      },
-      {
-        metric_name = "CountedRequests",
-        statistic   = "Sum",
-        title       = "Solicitudes Contadas"
       }
     ]
     
@@ -328,6 +324,20 @@ module "observability" {
         ok_actions    = ["arn:aws:sns:us-east-1:123456789012:alert-recovery"]
         statistic     = "Sum"
         period        = 300
+        treat_missing_data = "notBreaching" 
+      },
+      {
+        metric_name   = "BlockedRequests"
+        threshold     = 200
+        severity      = "critical"
+        comparison    = "GreaterThanThreshold"
+        description   = "Alto número de solicitudes bloqueadas"
+        alarm_actions = ["arn:aws:sns:us-east-1:123456789012:alert-warning"]
+        insufficient_data_actions = ["arn:aws:sns:us-east-1:123456789012:alert-insufficient-data"]
+        ok_actions    = ["arn:aws:sns:us-east-1:123456789012:alert-recovery"]
+        statistic     = "Sum"
+        period        = 300
+        treat_missing_data = "notBreaching" 
       },
       {
         metric_name   = "AllowedRequests"
@@ -335,9 +345,25 @@ module "observability" {
         severity      = "critical"
         comparison    = "GreaterThanThreshold"
         description   = "Tráfico excesivo al sitio web"
-        alarm_actions = ["arn:aws:sns:us-east-1:123456789012:alert-critical"]
+        alarm_actions = ["arn:aws:sns:us-east-1:123456789012:alert-warning"]
+        insufficient_data_actions = ["arn:aws:sns:us-east-1:123456789012:alert-insufficient-data"]
+        ok_actions    = ["arn:aws:sns:us-east-1:123456789012:alert-recovery"]
         statistic     = "Sum"
         period        = 300
+        treat_missing_data = "notBreaching" 
+      },
+            {
+        metric_name   = "AllowedRequests"
+        threshold     = 4000
+        severity      = "warning"
+        comparison    = "GreaterThanThreshold"
+        description   = "Tráfico excesivo al sitio web"
+        alarm_actions = ["arn:aws:sns:us-east-1:123456789012:alert-warning"]
+        insufficient_data_actions = ["arn:aws:sns:us-east-1:123456789012:alert-insufficient-data"]
+        ok_actions    = ["arn:aws:sns:us-east-1:123456789012:alert-recovery"]
+        statistic     = "Sum"
+        period        = 300
+        treat_missing_data = "notBreaching" 
       }
     ]
   }
@@ -354,7 +380,7 @@ module "observability" {
 # API GATEWAY   OK
 # DynamoDB      OK
 # Lambda        OK
-# CloudFront    Pendiente
+
 
 # Cloudfront
 # ECS
@@ -367,6 +393,6 @@ module "observability" {
 # API GATEWAY
 # DynamoDB
 # Lambda
-# CloudFront
+
 
 
