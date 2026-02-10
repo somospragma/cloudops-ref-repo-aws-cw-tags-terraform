@@ -156,15 +156,3 @@ data "aws_resourcegroupstaggingapi_resources" "ecs_services_filtered" {
   resource_type_filters = ["ecs:service"]
 }
 
-##########################################################
-# Data Obtiene Web ACLs de WAF segun el Tag
-##########################################################
-data "aws_resourcegroupstaggingapi_resources" "waf_filtered" {
-  count = var.waf != null ? 1 : 0
-  
-  tag_filter {
-    key    = try(var.waf.tag_key, "EnableObservability")
-    values = [try(var.waf.tag_value, "true")]
-  }
-  resource_type_filters = ["wafv2:webacl"]
-}
