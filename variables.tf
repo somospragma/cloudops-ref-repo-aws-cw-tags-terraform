@@ -30,15 +30,19 @@ variable "ec2" {
     # Configuración para los widgets del dashboard
     dashboard_config = optional(list(object({
       metric_name = string
+      namespace   = optional(string, "AWS/EC2")  # Usar "CWAgent" para métricas del CloudWatch Agent
       period      = optional(number, 300)
       statistic   = optional(string, "Average")
       width       = optional(number, 12)
       height      = optional(number, 6)
       title       = optional(string)
+      # Dimensiones adicionales para métricas de CWAgent (ej: {device = "nvme0n1p1", path = "/", fstype = "xfs"})
+      additional_dimensions = optional(map(string), {})
     })), [])
 
     alarm_config = optional(list(object({
       metric_name               = string
+      namespace                 = optional(string, "AWS/EC2")  # Usar "CWAgent" para métricas del CloudWatch Agent
       threshold                 = number
       severity                  = optional(string, "warning")
       comparison                = optional(string, "GreaterThanOrEqualToThreshold")
@@ -52,6 +56,8 @@ variable "ec2" {
       statistic                 = optional(string, "Average")
       datapoints_to_alarm       = optional(number, 2)
       treat_missing_data        = optional(string, "missing")
+      # Dimensiones adicionales para métricas de CWAgent (ej: {device = "nvme0n1p1", path = "/", fstype = "xfs"})
+      additional_dimensions     = optional(map(string), {})
     })), [])
   })
 

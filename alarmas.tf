@@ -12,6 +12,7 @@ locals {
         for alarm in try(var.ec2.alarm_config, []) : {
           alarm_name          = "ec2-${alarm.metric_name}-${try(alarm.severity, "warning")}-${instance_id}"
           metric_name         = alarm.metric_name
+          namespace           = try(alarm.namespace, "AWS/EC2")
           threshold           = alarm.threshold
           instance_id         = instance_id
           comparison_operator = try(alarm.comparison, "GreaterThanOrEqualToThreshold")
@@ -19,9 +20,12 @@ locals {
           period              = try(alarm.period, 300)
           statistic           = try(alarm.statistic, "Average")
           alarm_description   = try(alarm.description, "Alarma ${try(alarm.severity, "warning")} para ${alarm.metric_name} en instancia ${instance_id}")
-          dimensions = {
-            InstanceId = instance_id
-          }
+          dimensions = merge(
+            {
+              InstanceId = instance_id
+            },
+            try(alarm.additional_dimensions, {})
+          )
           actions                   = try(alarm.actions, [])
           alarm_actions             = try(alarm.alarm_actions, try(alarm.actions, []))
           insufficient_data_actions = try(alarm.insufficient_data_actions, [])

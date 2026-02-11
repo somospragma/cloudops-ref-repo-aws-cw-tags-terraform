@@ -27,6 +27,29 @@ Módulo de Terraform para automatizar la creación de dashboards y alarmas de Cl
 | ECS Container Insights | ✅ | ✅ | Completo |
 | AWS WAF | ✅ | ✅ | Completo |
 
+### Soporte de CloudWatch Agent para EC2
+
+El módulo soporta métricas personalizadas del **CloudWatch Agent** para instancias EC2, permitiendo monitorear recursos del sistema operativo que no están disponibles en las métricas nativas de AWS:
+
+**Métricas Disponibles:**
+- **Memoria**: `mem_used_percent`, `mem_available_percent`, `mem_used`, `mem_total`
+- **Disco**: `disk_used_percent`, `disk_free`, `disk_used`, `disk_total`
+- **CPU Detallado**: `cpu_usage_idle`, `cpu_usage_iowait`, `cpu_usage_system`, `cpu_usage_user`
+- **Red**: `net_bytes_sent`, `net_bytes_recv`, `net_packets_sent`, `net_packets_recv`
+- **Procesos**: `processes_running`, `processes_sleeping`, `processes_blocked`
+
+**Configuración:**
+- Namespace: `CWAgent` (en lugar de `AWS/EC2`)
+- Dimensiones adicionales para disco: `path`, `device`, `fstype`
+- Ejemplo completo en: `sample/ec2-cwagent-example.tf`
+
+**Requisitos Previos:**
+1. CloudWatch Agent instalado en las instancias EC2
+2. Permisos IAM para enviar métricas a CloudWatch
+3. Configuración del agent para recolectar las métricas deseadas
+
+📖 [Documentación oficial del CloudWatch Agent](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Install-CloudWatch-Agent.html)
+
 ## Requisitos
 
 - Terraform >= 1.0
@@ -515,6 +538,92 @@ ec2 = {
    evaluation_periods  = 3
    datapoints_to_alarm = 2  # 2 de 3 períodos deben estar en alarma
    ```
+
+## Ejemplos Completos
+
+### Ejemplo 1: EC2 con CloudWatch Agent (CPU, Memoria y Disco)
+
+```hcl
+module "observability_ec2_complete" {
+  source = "git::https://github.com/somospragma/cloudops-ref-repo-aws-cw-tags-terraform.git?ref=v1.0.0"
+
+  client      = "pragma"
+  project     = "myproject"
+  environment = "production"
+  application = "webserver"
+
+  ec2 = {
+    create_dashboard = true
+    create_alarms    = true
+    tag_key          = "EnableObservability"
+    tag_value        = "true"
+
+    dashboard_config = [
+      # CPU - Métrica nativa (no requiere agent)
+      {
+        metric_name = "CPUUtilization"
+        namespace   = "AWS/EC2"
+        title       = "CPU Utilization (%)"
+      },
+      # Memoria - Requiere CloudWatch Agent
+      {
+        metric_name = "mem_used_percent"
+        namespace   = "CWAgent"
+        title       = "Memory Usage (%)"
+      },
+      # Disco - Requiere CloudWatch Agent
+      {
+        metric_name = "disk_used_percent"
+        namespace   = "CWAgent"
+        title       = "Disk Usage (/) (%)"
+        additional_dimensions = {
+          path   = "/"
+          device = "nvme0n1p1"
+          fstype = "xfs"
+        }
+      }
+    ]
+
+    alarm_config = [
+      # CPU Warning
+      {
+        metric_name    = "CPUUtilization"
+        namespace      = "AWS/EC2"
+        threshold      = 80
+        severity       = "warning"
+        alarm_actions  = ["arn:aws:sns:us-east-1:123456789012:alerts"]
+      },
+      # Memoria Critical
+      {
+        metric_name    = "mem_used_percent"
+        namespace      = "CWAgent"
+        threshold      = 90
+        severity       = "critical"
+        alarm_actions  = ["arn:aws:sns:us-east-1:123456789012:alerts"]
+      },
+      # Disco Warning
+      {
+        metric_name    = "disk_used_percent"
+        namespace      = "CWAgent"
+        threshold      = 85
+        severity       = "warning"
+        alarm_actions  = ["arn:aws:sns:us-east-1:123456789012:alerts"]
+        additional_dimensions = {
+          path   = "/"
+          device = "nvme0n1p1"
+          fstype = "xfs"
+        }
+      }
+    ]
+  }
+}
+```
+
+Ver ejemplo completo en: [`sample/ec2-cwagent-example.tf`](./sample/ec2-cwagent-example.tf)
+
+### Ejemplo 2: Monitoreo Multi-Servicio
+
+Ver ejemplo completo en: [`sample/main.tf`](./sample/main.tf)
 
 ## Limitaciones
 

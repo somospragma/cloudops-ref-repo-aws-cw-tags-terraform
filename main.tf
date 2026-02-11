@@ -33,7 +33,7 @@ resource "aws_cloudwatch_metric_alarm" "ec2_alarms" {
   comparison_operator = each.value.comparison_operator
   evaluation_periods  = each.value.evaluation_periods
   metric_name         = each.value.metric_name
-  namespace           = "AWS/EC2"
+  namespace           = each.value.namespace
   period              = each.value.period
   statistic           = each.value.statistic
   threshold           = each.value.threshold
