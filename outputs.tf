@@ -15,7 +15,7 @@ output "dashboard_arn" {
 output "dashboard_url" {
   description = "URL del dashboard en la consola de AWS CloudWatch"
   value = try(
-    "https://console.aws.amazon.com/cloudwatch/home?region=${data.aws_region.current.name}#dashboards:name=${aws_cloudwatch_dashboard.unified_dashboard[0].dashboard_name}",
+    "https://console.aws.amazon.com/cloudwatch/home?region=${data.aws_region.current.id}#dashboards:name=${aws_cloudwatch_dashboard.unified_dashboard[0].dashboard_name}",
     null
   )
 }

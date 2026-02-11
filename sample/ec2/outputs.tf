@@ -26,21 +26,21 @@ output "total_alarms_created" {
 # Outputs - Información Útil
 ###########################################################
 
-output "dashboard_url" {
-  description = "URL del dashboard en la consola de AWS (si se creó)"
-  value       = module.observability_ec2_alarms_only.dashboard_url
-}
+# output "dashboard_url" {
+#   description = "URL del dashboard en la consola de AWS (si se creó)"
+#   value       = module.observability_ec2_alarms_only.dashboard_url
+# }
 
-output "summary" {
-  description = "Resumen de la configuración aplicada"
-  value = {
-    client              = var.client
-    project             = var.project
-    environment         = var.environment
-    application         = var.application
-    region              = var.aws_region
-    ec2_instances_found = module.observability_ec2_alarms_only.resources_discovered.ec2
-    disk_monitored      = var.disk_path
-    total_alarms        = module.observability_ec2_alarms_only.total_alarms_created.total
-  }
-}
+# output "summary" {
+#   description = "Resumen de la configuración aplicada"
+#   value = {
+#     client              = var.client
+#     project             = var.project
+#     environment         = var.environment
+#     application         = var.application
+#     region              = var.aws_region
+#     ec2_instances_found = module.observability_ec2_alarms_only.resources_discovered.ec2
+#     disk_monitored      = var.disk_path
+#     total_alarms        = module.observability_ec2_alarms_only.total_alarms_created.total
+#   }
+#}
