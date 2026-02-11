@@ -5,22 +5,23 @@
 module "observability_ec2_alarms_only" {
   source = "../../"
 
-  client      = "pragma"
-  project     = "myproject"
-  environment = "production"
-  application = "webserver"
+  client      = var.client
+  project     = var.project
+  environment = var.environment
+  application = var.application
 
   ec2 = {
     functionality    = "compute"
-    create_dashboard = false  # NO crear dashboard
-    create_alarms    = true   # SOLO crear alarmas
+    create_dashboard = false # NO crear dashboard
+    create_alarms    = true  # SOLO crear alarmas
     tag_key          = "EnableObservability"
     tag_value        = "true"
 
     # Configuración de alarmas
     alarm_config = [
       # ========================================
-      # Alarmas de CPU (métricas nativas)
+      # Alarmas de CPU (métricas nativas AWS/EC2)
+      # No requiere CloudWatch Agent
       # ========================================
       {
         metric_name         = "CPUUtilization"
@@ -29,7 +30,7 @@ module "observability_ec2_alarms_only" {
         severity            = "warning"
         comparison          = "GreaterThanOrEqualToThreshold"
         description         = "CPU utilization is above 80%"
-        alarm_actions       = ["arn:aws:sns:us-east-1:123456789012:alert-warning"]
+        alarm_actions       = [var.sns_topic_warning]
         evaluation_periods  = 3
         period              = 300
         statistic           = "Average"
@@ -43,7 +44,7 @@ module "observability_ec2_alarms_only" {
         severity            = "critical"
         comparison          = "GreaterThanOrEqualToThreshold"
         description         = "CPU utilization is above 90%"
-        alarm_actions       = ["arn:aws:sns:us-east-1:123456789012:alert-critical"]
+        alarm_actions       = [var.sns_topic_critical]
         evaluation_periods  = 2
         period              = 300
         statistic           = "Average"
@@ -52,7 +53,9 @@ module "observability_ec2_alarms_only" {
       },
 
       # ========================================
-      # Alarmas de Memoria (requiere CWAgent)
+      # Alarmas de Memoria (requiere CloudWatch Agent)
+      # Namespace: CWAgent
+      # Métrica: mem_used_percent
       # ========================================
       {
         metric_name         = "mem_used_percent"
@@ -61,7 +64,7 @@ module "observability_ec2_alarms_only" {
         severity            = "warning"
         comparison          = "GreaterThanOrEqualToThreshold"
         description         = "Memory usage is above 80%"
-        alarm_actions       = ["arn:aws:sns:us-east-1:123456789012:alert-warning"]
+        alarm_actions       = [var.sns_topic_warning]
         evaluation_periods  = 3
         period              = 300
         statistic           = "Average"
@@ -77,7 +80,7 @@ module "observability_ec2_alarms_only" {
         severity            = "critical"
         comparison          = "GreaterThanOrEqualToThreshold"
         description         = "Memory usage is above 90%"
-        alarm_actions       = ["arn:aws:sns:us-east-1:123456789012:alert-critical"]
+        alarm_actions       = [var.sns_topic_critical]
         evaluation_periods  = 2
         period              = 300
         statistic           = "Average"
@@ -87,7 +90,10 @@ module "observability_ec2_alarms_only" {
       },
 
       # ========================================
-      # Alarmas de Disco (requiere CWAgent)
+      # Alarmas de Disco (requiere CloudWatch Agent)
+      # Namespace: CWAgent
+      # Métrica: disk_used_percent
+      # Dimensiones adicionales: path, device, fstype
       # ========================================
       {
         metric_name         = "disk_used_percent"
@@ -95,8 +101,8 @@ module "observability_ec2_alarms_only" {
         threshold           = 85
         severity            = "warning"
         comparison          = "GreaterThanOrEqualToThreshold"
-        description         = "Disk usage on / is above 85%"
-        alarm_actions       = ["arn:aws:sns:us-east-1:123456789012:alert-warning"]
+        description         = "Disk usage on ${var.disk_path} is above 85%"
+        alarm_actions       = [var.sns_topic_warning]
         evaluation_periods  = 2
         period              = 300
         statistic           = "Average"
@@ -104,9 +110,9 @@ module "observability_ec2_alarms_only" {
         treat_missing_data  = "notBreaching"
         # Dimensiones adicionales para especificar el disco
         additional_dimensions = {
-          path   = "/"
-          device = "nvme0n1p1"
-          fstype = "xfs"
+          path   = var.disk_path
+          device = var.disk_device
+          fstype = var.disk_fstype
         }
       },
       {
@@ -115,25 +121,37 @@ module "observability_ec2_alarms_only" {
         threshold           = 95
         severity            = "critical"
         comparison          = "GreaterThanOrEqualToThreshold"
-        description         = "Disk usage on / is above 95%"
-        alarm_actions       = ["arn:aws:sns:us-east-1:123456789012:alert-critical"]
+        description         = "Disk usage on ${var.disk_path} is above 95%"
+        alarm_actions       = [var.sns_topic_critical]
         evaluation_periods  = 2
         period              = 300
         statistic           = "Average"
         datapoints_to_alarm = 2
         treat_missing_data  = "notBreaching"
         additional_dimensions = {
-          path   = "/"
-          device = "nvme0n1p1"
-          fstype = "xfs"
+          path   = var.disk_path
+          device = var.disk_device
+          fstype = var.disk_fstype
         }
       }
     ]
   }
 }
 
+###########################################################
 # Outputs
+###########################################################
+
 output "ec2_alarms" {
   description = "Alarmas de EC2 creadas"
   value       = module.observability_ec2_alarms_only.ec2_alarm_names
+}
+
+output "summary" {
+  description = "Resumen de recursos y alarmas creadas"
+  value = {
+    ec2_instances_discovered = module.observability_ec2_alarms_only.resources_discovered.ec2
+    total_alarms_created     = module.observability_ec2_alarms_only.total_alarms_created.ec2
+    alarm_names              = module.observability_ec2_alarms_only.ec2_alarm_names
+  }
 }
