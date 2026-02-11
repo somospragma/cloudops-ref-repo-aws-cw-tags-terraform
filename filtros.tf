@@ -2,7 +2,7 @@ locals {
   common_widget_properties = {
     "view"    = "timeSeries",
     "stacked" = false,
-    "region"  = "us-east-1",
+    "region"  = data.aws_region.current.name,
     "period"  = 300
   }
 

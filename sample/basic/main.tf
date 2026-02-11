@@ -1,5 +1,5 @@
 module "observability" {
-  source = "../"
+  source = "../../"
 
   client      = "acme"
   project     = "ecommerce"

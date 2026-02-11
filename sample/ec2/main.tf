@@ -3,7 +3,7 @@
 # NO crea dashboards, solo alarmas
 
 module "observability_ec2_alarms_only" {
-  source = "../"
+  source = "../../"
 
   client      = "pragma"
   project     = "myproject"
