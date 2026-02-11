@@ -1,0 +1,194 @@
+# ============================================================================
+# EJEMPLOS DE CONFIGURACIÓN - terraform.tfvars
+# ============================================================================
+# Copia el ejemplo que necesites a terraform.tfvars
+
+# ============================================================================
+# EJEMPLO 1: Solo CPU y Memoria (SIN monitoreo de disco)
+# ============================================================================
+# Usa este ejemplo si:
+# - No tienes CloudWatch Agent instalado
+# - Solo quieres monitorear CPU y Memoria
+# - No te interesa el uso de disco
+#
+# Alarmas creadas por instancia: 4 (2 CPU + 2 Memoria)
+# ============================================================================
+
+aws_region = "us-east-1"
+profile    = "pra_chaptercloudops_lab"
+
+client      = "pragma"
+project     = "hefesto"
+environment = "dev"
+application = "webserver"
+
+common_tags = {
+  environment  = "dev"
+  project-name = "Modulos Referencia"
+  owner        = "tu-email@pragma.com.co"
+  provisioned  = "terraform"
+}
+
+sns_topic_warning  = "arn:aws:sns:us-east-1:123456789012:alert-warning"
+sns_topic_critical = "arn:aws:sns:us-east-1:123456789012:alert-critical"
+
+# NO monitorear discos
+monitor_disks = []
+
+
+# ============================================================================
+# EJEMPLO 2: CPU, Memoria y UN disco (/)
+# ============================================================================
+# Usa este ejemplo si:
+# - Tienes CloudWatch Agent instalado
+# - Solo tienes un disco (el raíz /)
+# - Quieres monitoreo completo
+#
+# Alarmas creadas por instancia: 6 (2 CPU + 2 Memoria + 2 Disco)
+# ============================================================================
+
+# aws_region = "us-east-1"
+# profile    = "pra_chaptercloudops_lab"
+# 
+# client      = "pragma"
+# project     = "hefesto"
+# environment = "dev"
+# application = "webserver"
+# 
+# common_tags = {
+#   environment  = "dev"
+#   project-name = "Modulos Referencia"
+#   owner        = "tu-email@pragma.com.co"
+#   provisioned  = "terraform"
+# }
+# 
+# sns_topic_warning  = "arn:aws:sns:us-east-1:123456789012:alert-warning"
+# sns_topic_critical = "arn:aws:sns:us-east-1:123456789012:alert-critical"
+# 
+# # Monitorear solo el disco raíz
+# monitor_disks = [
+#   {
+#     path   = "/"
+#     device = "nvme0n1p1"  # EC2 modernas (Nitro)
+#     fstype = "xfs"
+#   }
+# ]
+
+
+# ============================================================================
+# EJEMPLO 3: CPU, Memoria y MÚLTIPLES discos (/, /data, /var)
+# ============================================================================
+# Usa este ejemplo si:
+# - Tienes CloudWatch Agent instalado
+# - Tienes múltiples volúmenes EBS montados
+# - Quieres monitorear cada disco por separado
+#
+# Alarmas creadas por instancia: 10 (2 CPU + 2 Memoria + 6 Disco [3 discos × 2])
+# ============================================================================
+
+# aws_region = "us-east-1"
+# profile    = "pra_chaptercloudops_lab"
+# 
+# client      = "pragma"
+# project     = "hefesto"
+# environment = "prod"
+# application = "database"
+# 
+# common_tags = {
+#   environment  = "prod"
+#   project-name = "Modulos Referencia"
+#   owner        = "tu-email@pragma.com.co"
+#   provisioned  = "terraform"
+# }
+# 
+# sns_topic_warning  = "arn:aws:sns:us-east-1:123456789012:alert-warning"
+# sns_topic_critical = "arn:aws:sns:us-east-1:123456789012:alert-critical"
+# 
+# # Monitorear múltiples discos
+# monitor_disks = [
+#   {
+#     path   = "/"
+#     device = "nvme0n1p1"
+#     fstype = "xfs"
+#   },
+#   {
+#     path   = "/data"
+#     device = "nvme1n1"
+#     fstype = "xfs"
+#   },
+#   {
+#     path   = "/var"
+#     device = "nvme2n1"
+#     fstype = "xfs"
+#   }
+# ]
+
+
+# ============================================================================
+# EJEMPLO 4: EC2 Antiguas (t2, m4, c4) con disco
+# ============================================================================
+# Usa este ejemplo si:
+# - Tienes instancias EC2 antiguas (no Nitro)
+# - El device es xvda1 en lugar de nvme0n1p1
+# - Filesystem es ext4 en lugar de xfs
+#
+# Alarmas creadas por instancia: 6 (2 CPU + 2 Memoria + 2 Disco)
+# ============================================================================
+
+# aws_region = "us-east-1"
+# profile    = "pra_chaptercloudops_lab"
+# 
+# client      = "pragma"
+# project     = "hefesto"
+# environment = "dev"
+# application = "legacy"
+# 
+# common_tags = {
+#   environment  = "dev"
+#   project-name = "Modulos Referencia"
+#   owner        = "tu-email@pragma.com.co"
+#   provisioned  = "terraform"
+# }
+# 
+# sns_topic_warning  = "arn:aws:sns:us-east-1:123456789012:alert-warning"
+# sns_topic_critical = "arn:aws:sns:us-east-1:123456789012:alert-critical"
+# 
+# # EC2 antiguas usan xvda1 y ext4
+# monitor_disks = [
+#   {
+#     path   = "/"
+#     device = "xvda1"   # ← Diferente para EC2 antiguas
+#     fstype = "ext4"    # ← Diferente para EC2 antiguas
+#   }
+# ]
+
+
+# ============================================================================
+# CÓMO OBTENER LOS VALORES CORRECTOS
+# ============================================================================
+# 
+# Conéctate a tu instancia EC2 y ejecuta:
+# 
+# 1. Ver discos montados y sus paths:
+#    $ df -h
+#    
+#    Salida ejemplo:
+#    Filesystem      Size  Used Avail Use% Mounted on
+#    /dev/nvme0n1p1   20G   5G   15G  25% /
+#    /dev/nvme1n1    100G  10G   90G  10% /data
+#    
+#    → path = "/" o "/data"
+#    → device = "nvme0n1p1" o "nvme1n1"
+# 
+# 2. Ver tipo de filesystem:
+#    $ lsblk -f
+#    
+#    Salida ejemplo:
+#    NAME        FSTYPE LABEL UUID                                 MOUNTPOINT
+#    nvme0n1                                                       
+#    └─nvme0n1p1 xfs          12345678-1234-1234-1234-123456789012 /
+#    nvme1n1     xfs          87654321-4321-4321-4321-210987654321 /data
+#    
+#    → fstype = "xfs"
+# 
+# ============================================================================

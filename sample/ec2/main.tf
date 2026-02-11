@@ -94,47 +94,121 @@ module "observability_ec2_alarms_only" {
       # Namespace: CWAgent
       # Métrica: disk_used_percent
       # Dimensiones adicionales: path, device, fstype
+      # 
+      # NOTA: Se crean alarmas para CADA disco en var.monitor_disks
+      # Si monitor_disks está vacío, NO se crean alarmas de disco
       # ========================================
-      {
-        metric_name         = "disk_used_percent"
-        namespace           = "CWAgent"
-        threshold           = 85
-        severity            = "warning"
-        comparison          = "GreaterThanOrEqualToThreshold"
-        description         = "Disk usage on ${var.disk_path} is above 85%"
-        alarm_actions       = [var.sns_topic_warning]
-        evaluation_periods  = 2
-        period              = 300
-        statistic           = "Average"
-        datapoints_to_alarm = 2
-        treat_missing_data  = "notBreaching"
-        # Dimensiones adicionales para especificar el disco
-        additional_dimensions = {
-          path   = var.disk_path
-          device = var.disk_device
-          fstype = var.disk_fstype
+    ],
+    
+    # Alarmas de disco dinámicas (se crean para cada disco en la lista)
+    alarm_config = concat(
+      [
+        # Alarmas de CPU y Memoria (siempre se crean)
+        {
+          metric_name         = "CPUUtilization"
+          namespace           = "AWS/EC2"
+          threshold           = 80
+          severity            = "warning"
+          comparison          = "GreaterThanOrEqualToThreshold"
+          description         = "CPU utilization is above 80%"
+          alarm_actions       = [var.sns_topic_warning]
+          evaluation_periods  = 3
+          period              = 300
+          statistic           = "Average"
+          datapoints_to_alarm = 2
+          treat_missing_data  = "notBreaching"
+        },
+        {
+          metric_name         = "CPUUtilization"
+          namespace           = "AWS/EC2"
+          threshold           = 90
+          severity            = "critical"
+          comparison          = "GreaterThanOrEqualToThreshold"
+          description         = "CPU utilization is above 90%"
+          alarm_actions       = [var.sns_topic_critical]
+          evaluation_periods  = 2
+          period              = 300
+          statistic           = "Average"
+          datapoints_to_alarm = 2
+          treat_missing_data  = "notBreaching"
+        },
+        {
+          metric_name           = "mem_used_percent"
+          namespace             = "CWAgent"
+          threshold             = 80
+          severity              = "warning"
+          comparison            = "GreaterThanOrEqualToThreshold"
+          description           = "Memory usage is above 80%"
+          alarm_actions         = [var.sns_topic_warning]
+          evaluation_periods    = 3
+          period                = 300
+          statistic             = "Average"
+          datapoints_to_alarm   = 2
+          treat_missing_data    = "notBreaching"
+          additional_dimensions = {}
+        },
+        {
+          metric_name           = "mem_used_percent"
+          namespace             = "CWAgent"
+          threshold             = 90
+          severity              = "critical"
+          comparison            = "GreaterThanOrEqualToThreshold"
+          description           = "Memory usage is above 90%"
+          alarm_actions         = [var.sns_topic_critical]
+          evaluation_periods    = 2
+          period                = 300
+          statistic             = "Average"
+          datapoints_to_alarm   = 2
+          treat_missing_data    = "notBreaching"
+          additional_dimensions = {}
         }
-      },
-      {
-        metric_name         = "disk_used_percent"
-        namespace           = "CWAgent"
-        threshold           = 95
-        severity            = "critical"
-        comparison          = "GreaterThanOrEqualToThreshold"
-        description         = "Disk usage on ${var.disk_path} is above 95%"
-        alarm_actions       = [var.sns_topic_critical]
-        evaluation_periods  = 2
-        period              = 300
-        statistic           = "Average"
-        datapoints_to_alarm = 2
-        treat_missing_data  = "notBreaching"
-        additional_dimensions = {
-          path   = var.disk_path
-          device = var.disk_device
-          fstype = var.disk_fstype
-        }
-      }
-    ]
+      ],
+      # Alarmas de disco (solo si monitor_disks no está vacío)
+      flatten([
+        for disk in var.monitor_disks : [
+          # Warning para este disco
+          {
+            metric_name         = "disk_used_percent"
+            namespace           = "CWAgent"
+            threshold           = 85
+            severity            = "warning"
+            comparison          = "GreaterThanOrEqualToThreshold"
+            description         = "Disk usage on ${disk.path} is above 85%"
+            alarm_actions       = [var.sns_topic_warning]
+            evaluation_periods  = 2
+            period              = 300
+            statistic           = "Average"
+            datapoints_to_alarm = 2
+            treat_missing_data  = "notBreaching"
+            additional_dimensions = {
+              path   = disk.path
+              device = disk.device
+              fstype = disk.fstype
+            }
+          },
+          # Critical para este disco
+          {
+            metric_name         = "disk_used_percent"
+            namespace           = "CWAgent"
+            threshold           = 95
+            severity            = "critical"
+            comparison          = "GreaterThanOrEqualToThreshold"
+            description         = "Disk usage on ${disk.path} is above 95%"
+            alarm_actions       = [var.sns_topic_critical]
+            evaluation_periods  = 2
+            period              = 300
+            statistic           = "Average"
+            datapoints_to_alarm = 2
+            treat_missing_data  = "notBreaching"
+            additional_dimensions = {
+              path   = disk.path
+              device = disk.device
+              fstype = disk.fstype
+            }
+          }
+        ]
+      ])
+    )
   }
 }
 

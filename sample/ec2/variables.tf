@@ -61,24 +61,33 @@ variable "sns_topic_critical" {
 }
 
 ###########################################################
-# Variables CloudWatch Agent (Disco)
+# Variables CloudWatch Agent (Disco) - OPCIONAL
 ###########################################################
 
-variable "disk_path" {
-  type        = string
-  description = "Path del disco a monitorear (ej: /, /data)"
-  default     = "/"
-}
-
-variable "disk_device" {
-  type        = string
-  description = "Device del disco (ej: nvme0n1p1 para EC2 modernas, xvda1 para antiguas)"
-  default     = "nvme0n1p1"
-}
-
-variable "disk_fstype" {
-  type        = string
-  description = "Tipo de filesystem (ej: xfs, ext4)"
-  default     = "xfs"
+variable "monitor_disks" {
+  type = list(object({
+    path   = string  # Path del disco (ej: /, /data, /var)
+    device = string  # Device (ej: nvme0n1p1, nvme1n1, xvda1)
+    fstype = string  # Filesystem type (ej: xfs, ext4)
+  }))
+  description = <<-EOT
+    Lista de discos a monitorear con CloudWatch Agent.
+    Si está vacía, NO se crearán alarmas de disco (solo CPU y Memoria).
+    
+    Para obtener los valores, ejecuta en tu EC2:
+      df -h        # Ver path y device
+      lsblk -f     # Ver fstype
+    
+    Ejemplos:
+      - EC2 modernas (Nitro): device = "nvme0n1p1", fstype = "xfs"
+      - EC2 antiguas:         device = "xvda1", fstype = "ext4"
+  EOT
+  default = [
+    {
+      path   = "/"
+      device = "nvme0n1p1"
+      fstype = "xfs"
+    }
+  ]
 }
 
