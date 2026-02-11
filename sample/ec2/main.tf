@@ -17,128 +17,122 @@ module "observability_ec2_alarms_only" {
     tag_key          = "EnableObservability"
     tag_value        = "true"
 
-    # Configuración de alarmas - Se construye dinámicamente
-    # CPU + Memoria (siempre) + Disco (si monitor_disks no está vacío)
-    alarm_config = concat(
-      [
-        # ========================================
-        # Alarmas de CPU (métricas nativas AWS/EC2)
-        # No requiere CloudWatch Agent
-        # ========================================
-        {
-          metric_name         = "CPUUtilization"
-          namespace           = "AWS/EC2"
-          threshold           = 80
-          severity            = "warning"
-          comparison          = "GreaterThanOrEqualToThreshold"
-          description         = "CPU utilization is above 80%"
-          alarm_actions       = [var.sns_topic_warning]
-          evaluation_periods  = 3
-          period              = 300
-          statistic           = "Average"
-          datapoints_to_alarm = 2
-          treat_missing_data  = "notBreaching"
-        },
-        {
-          metric_name         = "CPUUtilization"
-          namespace           = "AWS/EC2"
-          threshold           = 90
-          severity            = "critical"
-          comparison          = "GreaterThanOrEqualToThreshold"
-          description         = "CPU utilization is above 90%"
-          alarm_actions       = [var.sns_topic_critical]
-          evaluation_periods  = 2
-          period              = 300
-          statistic           = "Average"
-          datapoints_to_alarm = 2
-          treat_missing_data  = "notBreaching"
-        },
+    # Configuración de alarmas: CPU + Memoria + Disco
+    alarm_config = [
+      # ========================================
+      # Alarmas de CPU (métricas nativas AWS/EC2)
+      # No requiere CloudWatch Agent
+      # ========================================
+      {
+        metric_name         = "CPUUtilization"
+        namespace           = "AWS/EC2"
+        threshold           = 80
+        severity            = "warning"
+        comparison          = "GreaterThanOrEqualToThreshold"
+        description         = "CPU utilization is above 80%"
+        alarm_actions       = [var.sns_topic_warning]
+        evaluation_periods  = 3
+        period              = 300
+        statistic           = "Average"
+        datapoints_to_alarm = 2
+        treat_missing_data  = "notBreaching"
+      },
+      {
+        metric_name         = "CPUUtilization"
+        namespace           = "AWS/EC2"
+        threshold           = 90
+        severity            = "critical"
+        comparison          = "GreaterThanOrEqualToThreshold"
+        description         = "CPU utilization is above 90%"
+        alarm_actions       = [var.sns_topic_critical]
+        evaluation_periods  = 2
+        period              = 300
+        statistic           = "Average"
+        datapoints_to_alarm = 2
+        treat_missing_data  = "notBreaching"
+      },
 
-        # ========================================
-        # Alarmas de Memoria (requiere CloudWatch Agent)
-        # Namespace: CWAgent
-        # Métrica: mem_used_percent
-        # ========================================
-        {
-          metric_name           = "mem_used_percent"
-          namespace             = "CWAgent"
-          threshold             = 80
-          severity              = "warning"
-          comparison            = "GreaterThanOrEqualToThreshold"
-          description           = "Memory usage is above 80%"
-          alarm_actions         = [var.sns_topic_warning]
-          evaluation_periods    = 3
-          period                = 300
-          statistic             = "Average"
-          datapoints_to_alarm   = 2
-          treat_missing_data    = "notBreaching"
-          additional_dimensions = {}
-        },
-        {
-          metric_name           = "mem_used_percent"
-          namespace             = "CWAgent"
-          threshold             = 90
-          severity              = "critical"
-          comparison            = "GreaterThanOrEqualToThreshold"
-          description           = "Memory usage is above 90%"
-          alarm_actions         = [var.sns_topic_critical]
-          evaluation_periods    = 2
-          period                = 300
-          statistic             = "Average"
-          datapoints_to_alarm   = 2
-          treat_missing_data    = "notBreaching"
-          additional_dimensions = {}
-        }
-      ],
+      # ========================================
+      # Alarmas de Memoria (requiere CloudWatch Agent)
+      # Namespace: CWAgent
+      # Métrica: mem_used_percent
+      # ========================================
+      {
+        metric_name           = "mem_used_percent"
+        namespace             = "CWAgent"
+        threshold             = 80
+        severity              = "warning"
+        comparison            = "GreaterThanOrEqualToThreshold"
+        description           = "Memory usage is above 80%"
+        alarm_actions         = [var.sns_topic_warning]
+        evaluation_periods    = 3
+        period                = 300
+        statistic             = "Average"
+        datapoints_to_alarm   = 2
+        treat_missing_data    = "notBreaching"
+        additional_dimensions = {}
+      },
+      {
+        metric_name           = "mem_used_percent"
+        namespace             = "CWAgent"
+        threshold             = 90
+        severity              = "critical"
+        comparison            = "GreaterThanOrEqualToThreshold"
+        description           = "Memory usage is above 90%"
+        alarm_actions         = [var.sns_topic_critical]
+        evaluation_periods    = 2
+        period                = 300
+        statistic             = "Average"
+        datapoints_to_alarm   = 2
+        treat_missing_data    = "notBreaching"
+        additional_dimensions = {}
+      },
+
       # ========================================
       # Alarmas de Disco (requiere CloudWatch Agent)
-      # Se crean dinámicamente para cada disco en var.monitor_disks
+      # Namespace: CWAgent
+      # Métrica: disk_used_percent
+      # Dimensiones: path, device, fstype
       # ========================================
-      flatten([
-        for disk in var.monitor_disks : [
-          # Warning para este disco
-          {
-            metric_name         = "disk_used_percent"
-            namespace           = "CWAgent"
-            threshold           = 85
-            severity            = "warning"
-            comparison          = "GreaterThanOrEqualToThreshold"
-            description         = "Disk usage on ${disk.path} is above 85%"
-            alarm_actions       = [var.sns_topic_warning]
-            evaluation_periods  = 2
-            period              = 300
-            statistic           = "Average"
-            datapoints_to_alarm = 2
-            treat_missing_data  = "notBreaching"
-            additional_dimensions = {
-              path   = disk.path
-              device = disk.device
-              fstype = disk.fstype
-            }
-          },
-          # Critical para este disco
-          {
-            metric_name         = "disk_used_percent"
-            namespace           = "CWAgent"
-            threshold           = 95
-            severity            = "critical"
-            comparison          = "GreaterThanOrEqualToThreshold"
-            description         = "Disk usage on ${disk.path} is above 95%"
-            alarm_actions       = [var.sns_topic_critical]
-            evaluation_periods  = 2
-            period              = 300
-            statistic           = "Average"
-            datapoints_to_alarm = 2
-            treat_missing_data  = "notBreaching"
-            additional_dimensions = {
-              path   = disk.path
-              device = disk.device
-              fstype = disk.fstype
-            }
-          }
-        ]
-      ])
-    )
+      {
+        metric_name         = "disk_used_percent"
+        namespace           = "CWAgent"
+        threshold           = 85
+        severity            = "warning"
+        comparison          = "GreaterThanOrEqualToThreshold"
+        description         = "Disk usage on ${var.disk_path} is above 85%"
+        alarm_actions       = [var.sns_topic_warning]
+        evaluation_periods  = 2
+        period              = 300
+        statistic           = "Average"
+        datapoints_to_alarm = 2
+        treat_missing_data  = "notBreaching"
+        additional_dimensions = {
+          path   = var.disk_path
+          device = var.disk_device
+          fstype = var.disk_fstype
+        }
+      },
+      {
+        metric_name         = "disk_used_percent"
+        namespace           = "CWAgent"
+        threshold           = 95
+        severity            = "critical"
+        comparison          = "GreaterThanOrEqualToThreshold"
+        description         = "Disk usage on ${var.disk_path} is above 95%"
+        alarm_actions       = [var.sns_topic_critical]
+        evaluation_periods  = 2
+        period              = 300
+        statistic           = "Average"
+        datapoints_to_alarm = 2
+        treat_missing_data  = "notBreaching"
+        additional_dimensions = {
+          path   = var.disk_path
+          device = var.disk_device
+          fstype = var.disk_fstype
+        }
+      }
+    ]
   }
 }
 

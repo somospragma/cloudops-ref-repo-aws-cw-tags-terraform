@@ -34,18 +34,13 @@ output "dashboard_url" {
 output "summary" {
   description = "Resumen de la configuración aplicada"
   value = {
-    client               = var.client
-    project              = var.project
-    environment          = var.environment
-    application          = var.application
-    region               = var.aws_region
-    ec2_instances_found  = module.observability_ec2_alarms_only.resources_discovered.ec2
-    disks_monitored      = length(var.monitor_disks)
-    total_alarms         = module.observability_ec2_alarms_only.total_alarms_created.total
-    alarms_breakdown = {
-      cpu_alarms    = 2 * module.observability_ec2_alarms_only.resources_discovered.ec2
-      memory_alarms = 2 * module.observability_ec2_alarms_only.resources_discovered.ec2
-      disk_alarms   = 2 * length(var.monitor_disks) * module.observability_ec2_alarms_only.resources_discovered.ec2
-    }
+    client              = var.client
+    project             = var.project
+    environment         = var.environment
+    application         = var.application
+    region              = var.aws_region
+    ec2_instances_found = module.observability_ec2_alarms_only.resources_discovered.ec2
+    disk_monitored      = var.disk_path
+    total_alarms        = module.observability_ec2_alarms_only.total_alarms_created.total
   }
 }
