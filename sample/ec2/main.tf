@@ -93,7 +93,12 @@ module "observability_ec2_alarms_only" {
       # Namespace: CWAgent
       # Métrica: disk_used_percent
       # Dimensiones: path, device, fstype
+      # 
+      # NOTA: Puedes agregar más discos copiando estos bloques
+      # y cambiando los valores de path, device, fstype
       # ========================================
+      
+      # Disco 1: / (raíz)
       {
         metric_name         = "disk_used_percent"
         namespace           = "CWAgent"
@@ -132,6 +137,51 @@ module "observability_ec2_alarms_only" {
           fstype = var.disk_fstype
         }
       }
+
+      # ========================================
+      # EJEMPLO: Agregar más discos (comentado)
+      # Descomenta y ajusta si necesitas monitorear /data o /var
+      # ========================================
+      
+      # # Disco 2: /data
+      # {
+      #   metric_name         = "disk_used_percent"
+      #   namespace           = "CWAgent"
+      #   threshold           = 85
+      #   severity            = "warning"
+      #   comparison          = "GreaterThanOrEqualToThreshold"
+      #   description         = "Disk usage on /data is above 85%"
+      #   alarm_actions       = [var.sns_topic_warning]
+      #   evaluation_periods  = 2
+      #   period              = 300
+      #   statistic           = "Average"
+      #   datapoints_to_alarm = 2
+      #   treat_missing_data  = "notBreaching"
+      #   additional_dimensions = {
+      #     path   = "/data"
+      #     device = "nvme1n1"
+      #     fstype = "xfs"
+      #   }
+      # },
+      # {
+      #   metric_name         = "disk_used_percent"
+      #   namespace           = "CWAgent"
+      #   threshold           = 95
+      #   severity            = "critical"
+      #   comparison          = "GreaterThanOrEqualToThreshold"
+      #   description         = "Disk usage on /data is above 95%"
+      #   alarm_actions       = [var.sns_topic_critical]
+      #   evaluation_periods  = 2
+      #   period              = 300
+      #   statistic           = "Average"
+      #   datapoints_to_alarm = 2
+      #   treat_missing_data  = "notBreaching"
+      #   additional_dimensions = {
+      #     path   = "/data"
+      #     device = "nvme1n1"
+      #     fstype = "xfs"
+      #   }
+      # }
     ]
   }
 }
