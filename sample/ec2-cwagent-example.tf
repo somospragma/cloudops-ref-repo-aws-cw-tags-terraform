@@ -1,7 +1,8 @@
 # Ejemplo de configuración de EC2 con CloudWatch Agent
-# Este ejemplo muestra cómo monitorear CPU (nativa), Memoria y Disco (CWAgent)
+# Este ejemplo muestra cómo crear SOLO ALARMAS para CPU (nativa), Memoria y Disco (CWAgent)
+# NO crea dashboards, solo alarmas
 
-module "observability_ec2_complete" {
+module "observability_ec2_alarms_only" {
   source = "../"
 
   client      = "pragma"
@@ -11,54 +12,10 @@ module "observability_ec2_complete" {
 
   ec2 = {
     functionality    = "compute"
-    create_dashboard = true
-    create_alarms    = true
+    create_dashboard = false  # NO crear dashboard
+    create_alarms    = true   # SOLO crear alarmas
     tag_key          = "EnableObservability"
     tag_value        = "true"
-
-    # Configuración del dashboard
-    dashboard_config = [
-      # CPU - Métrica nativa de AWS/EC2 (no requiere CloudWatch Agent)
-      {
-        metric_name = "CPUUtilization"
-        namespace   = "AWS/EC2"  # Namespace por defecto
-        period      = 300
-        statistic   = "Average"
-        width       = 12
-        height      = 6
-        title       = "EC2 - CPU Utilization (%)"
-      },
-      
-      # Memoria - Requiere CloudWatch Agent
-      {
-        metric_name = "mem_used_percent"
-        namespace   = "CWAgent"  # Namespace del CloudWatch Agent
-        period      = 300
-        statistic   = "Average"
-        width       = 12
-        height      = 6
-        title       = "EC2 - Memory Usage (%)"
-        # No se requieren dimensiones adicionales para memoria
-        additional_dimensions = {}
-      },
-      
-      # Disco - Requiere CloudWatch Agent
-      {
-        metric_name = "disk_used_percent"
-        namespace   = "CWAgent"  # Namespace del CloudWatch Agent
-        period      = 300
-        statistic   = "Average"
-        width       = 12
-        height      = 6
-        title       = "EC2 - Disk Usage (/) (%)"
-        # Dimensiones adicionales para especificar el disco/partición
-        additional_dimensions = {
-          path   = "/"           # Punto de montaje
-          device = "nvme0n1p1"   # Dispositivo (ajustar según tu configuración)
-          fstype = "xfs"         # Tipo de sistema de archivos
-        }
-      }
-    ]
 
     # Configuración de alarmas
     alarm_config = [
@@ -176,12 +133,7 @@ module "observability_ec2_complete" {
 }
 
 # Outputs
-output "dashboard_name" {
-  description = "Nombre del dashboard creado"
-  value       = module.observability_ec2_complete.dashboard_name
-}
-
 output "ec2_alarms" {
   description = "Alarmas de EC2 creadas"
-  value       = module.observability_ec2_complete.ec2_alarm_names
+  value       = module.observability_ec2_alarms_only.ec2_alarm_names
 }
