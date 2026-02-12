@@ -50,14 +50,14 @@ variable "application" {
 
 variable "sns_topic_warning" {
   type        = string
-  description = "ARN del SNS topic para alarmas de severidad WARNING"
-  default     = "arn:aws:sns:us-east-1:123456789012:alert-warning"
+  description = "ARN del SNS topic para alarmas de severidad WARNING (opcional, dejar vacío para no enviar notificaciones)"
+  default     = ""
 }
 
 variable "sns_topic_critical" {
   type        = string
-  description = "ARN del SNS topic para alarmas de severidad CRITICAL"
-  default     = "arn:aws:sns:us-east-1:123456789012:alert-critical"
+  description = "ARN del SNS topic para alarmas de severidad CRITICAL (opcional, dejar vacío para no enviar notificaciones)"
+  default     = ""
 }
 
 ###########################################################

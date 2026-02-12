@@ -26,11 +26,18 @@ common_tags = {
 }
 
 ###########################################################
-# SNS Topics para Alarmas
-# IMPORTANTE: Reemplazar con tus ARNs reales de SNS
+# SNS Topics para Alarmas (OPCIONAL)
+# 
+# Dejar vacío para pruebas sin notificaciones:
+#   sns_topic_warning  = ""
+#   sns_topic_critical = ""
+#
+# O especificar ARNs reales para recibir notificaciones:
+#   sns_topic_warning  = "arn:aws:sns:us-east-1:123456789012:alert-warning"
+#   sns_topic_critical = "arn:aws:sns:us-east-1:123456789012:alert-critical"
 ###########################################################
-sns_topic_warning  = "arn:aws:sns:us-east-1:123456789012:alert-warning"
-sns_topic_critical = "arn:aws:sns:us-east-1:123456789012:alert-critical"
+sns_topic_warning  = ""
+sns_topic_critical = ""
 
 ###########################################################
 # CloudWatch Agent - Configuración de Disco

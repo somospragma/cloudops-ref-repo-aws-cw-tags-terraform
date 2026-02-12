@@ -2,6 +2,12 @@
 # Este ejemplo muestra cómo crear SOLO ALARMAS para CPU (nativa), Memoria y Disco (CWAgent)
 # NO crea dashboards, solo alarmas
 
+locals {
+  # SNS topics opcionales - si están vacíos, no se envían notificaciones
+  alarm_actions_warning  = var.sns_topic_warning != "" ? local.alarm_actions_warning : []
+  alarm_actions_critical = var.sns_topic_critical != "" ? local.alarm_actions_critical : []
+}
+
 module "observability_ec2_alarms_only" {
   source = "../../"
 
@@ -30,7 +36,7 @@ module "observability_ec2_alarms_only" {
         severity            = "warning"
         comparison          = "GreaterThanOrEqualToThreshold"
         description         = "CPU utilization is above 80%"
-        alarm_actions       = [var.sns_topic_warning]
+        alarm_actions       = local.alarm_actions_warning
         evaluation_periods  = 3
         period              = 300
         statistic           = "Average"
@@ -44,7 +50,7 @@ module "observability_ec2_alarms_only" {
         severity            = "critical"
         comparison          = "GreaterThanOrEqualToThreshold"
         description         = "CPU utilization is above 90%"
-        alarm_actions       = [var.sns_topic_critical]
+        alarm_actions       = local.alarm_actions_critical
         evaluation_periods  = 2
         period              = 300
         statistic           = "Average"
@@ -64,7 +70,7 @@ module "observability_ec2_alarms_only" {
         severity              = "warning"
         comparison            = "GreaterThanOrEqualToThreshold"
         description           = "Memory usage is above 80%"
-        alarm_actions         = [var.sns_topic_warning]
+        alarm_actions         = local.alarm_actions_warning
         evaluation_periods    = 3
         period                = 300
         statistic             = "Average"
@@ -79,7 +85,7 @@ module "observability_ec2_alarms_only" {
         severity              = "critical"
         comparison            = "GreaterThanOrEqualToThreshold"
         description           = "Memory usage is above 90%"
-        alarm_actions         = [var.sns_topic_critical]
+        alarm_actions         = local.alarm_actions_critical
         evaluation_periods    = 2
         period                = 300
         statistic             = "Average"
@@ -106,7 +112,7 @@ module "observability_ec2_alarms_only" {
         severity            = "warning"
         comparison          = "GreaterThanOrEqualToThreshold"
         description         = "Disk usage on ${var.disk_path} is above 85%"
-        alarm_actions       = [var.sns_topic_warning]
+        alarm_actions       = local.alarm_actions_warning
         evaluation_periods  = 2
         period              = 300
         statistic           = "Average"
@@ -125,7 +131,7 @@ module "observability_ec2_alarms_only" {
         severity            = "critical"
         comparison          = "GreaterThanOrEqualToThreshold"
         description         = "Disk usage on ${var.disk_path} is above 95%"
-        alarm_actions       = [var.sns_topic_critical]
+        alarm_actions       = local.alarm_actions_critical
         evaluation_periods  = 2
         period              = 300
         statistic           = "Average"
@@ -151,7 +157,7 @@ module "observability_ec2_alarms_only" {
       #   severity            = "warning"
       #   comparison          = "GreaterThanOrEqualToThreshold"
       #   description         = "Disk usage on /data is above 85%"
-      #   alarm_actions       = [var.sns_topic_warning]
+      #   alarm_actions       = local.alarm_actions_warning
       #   evaluation_periods  = 2
       #   period              = 300
       #   statistic           = "Average"
@@ -170,7 +176,7 @@ module "observability_ec2_alarms_only" {
       #   severity            = "critical"
       #   comparison          = "GreaterThanOrEqualToThreshold"
       #   description         = "Disk usage on /data is above 95%"
-      #   alarm_actions       = [var.sns_topic_critical]
+      #   alarm_actions       = local.alarm_actions_critical
       #   evaluation_periods  = 2
       #   period              = 300
       #   statistic           = "Average"
