@@ -4,8 +4,8 @@
 
 locals {
   # SNS topics opcionales - si están vacíos, no se envían notificaciones
-  alarm_actions_warning  = var.sns_topic_warning != "" ? local.alarm_actions_warning : []
-  alarm_actions_critical = var.sns_topic_critical != "" ? local.alarm_actions_critical : []
+  alarm_actions_warning  = var.sns_topic_warning != "" ? [var.sns_topic_warning] : []
+  alarm_actions_critical = var.sns_topic_critical != "" ? [var.sns_topic_critical] : []
 }
 
 module "observability_ec2_alarms_only" {
